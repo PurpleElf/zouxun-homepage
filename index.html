@@ -1,0 +1,1010 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>邹浔 · Java 工程师 / AI 智能体开发</title>
+<meta name="description" content="邹浔的个人网站 — 4 年 Java 后端经验，专注高并发、微服务与 AI 智能体（Agent / RAG / MCP）工程化落地。">
+<meta name="theme-color" content="#040605">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='4.6' fill='%23f5efe2'/%3E%3Cg stroke='%23f5efe2' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M16 4.5v5M16 22.5v5M4.5 16h5M22.5 16h5M8 8l3.4 3.4M23.4 23.4 20 20M24 8l-3.4 3.4M8.6 23.4 12 20'/%3E%3C/g%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Antonio:wght@400;500&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --u:min(calc(100vw/1600),calc(100vh/900));
+  --cream:#f5efe2;
+  --ink:#151510;
+  --bg:#040605;
+  --line:rgba(245,239,226,.16);
+  --line-soft:rgba(245,239,226,.08);
+  --dim:rgba(245,239,226,.62);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+html,body{background:var(--bg);max-width:100%}
+body{
+  color:var(--cream);
+  font-family:Manrope,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+img,svg{display:block}
+::selection{background:rgba(245,239,226,.2)}
+
+/* ---------- 背景山谷 ---------- */
+#valley{position:fixed;inset:0;z-index:0;overflow:hidden}
+#valley canvas{display:block;width:100%;height:100%}
+.vignette{
+  position:fixed;inset:0;z-index:1;pointer-events:none;
+  background:radial-gradient(ellipse 120% 90% at 50% 42%,rgba(0,0,0,0) 34%,rgba(0,0,0,.5) 78%,rgba(0,0,0,.78) 100%);
+  transition:opacity .6s ease;
+}
+.grain{
+  position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.05;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ---------- 界面层 ---------- */
+.ui{position:relative;z-index:2;pointer-events:none;opacity:0;transition:opacity 1.6s ease}
+.ui.on{opacity:1}
+.ui a,.ui button{pointer-events:auto}
+
+header{
+  position:fixed;left:0;right:0;top:0;z-index:6;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:calc(26*var(--u)) calc(44*var(--u));
+  transition:background .4s ease,backdrop-filter .4s ease,padding .4s ease;
+}
+header.scrolled{background:linear-gradient(180deg,rgba(4,6,5,.92),rgba(4,6,5,.55) 60%,rgba(4,6,5,0));backdrop-filter:blur(8px)}
+.logo{font-size:calc(24*var(--u));font-weight:600;letter-spacing:.02em;display:flex;align-items:baseline;gap:.35em}
+.logo i{font-style:normal;font-family:Antonio,sans-serif;font-size:.72em;opacity:.55;letter-spacing:.06em}
+nav{display:flex;align-items:center;gap:calc(34*var(--u));font-size:calc(13.5*var(--u));font-weight:500;letter-spacing:.16em;text-transform:uppercase}
+nav a:not(.pill){opacity:.72;transition:opacity .25s}
+nav a:not(.pill):hover{opacity:1}
+.pill{
+  display:inline-flex;align-items:center;height:calc(44*var(--u));padding:0 calc(24*var(--u));
+  border-radius:99px;background:var(--cream);color:var(--ink);letter-spacing:.06em;
+  transition:transform .3s cubic-bezier(.2,.7,.2,1),box-shadow .3s;
+}
+.pill:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(245,239,226,.15)}
+
+/* ---------- Hero ---------- */
+.hero{
+  position:relative;min-height:100svh;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:calc(120*var(--u)) calc(24*var(--u)) calc(90*var(--u));
+}
+.eyebrow{
+  font-size:calc(11.5*var(--u));letter-spacing:.36em;text-transform:uppercase;
+  color:rgba(245,239,226,.6);margin-bottom:calc(22*var(--u));font-weight:500;
+}
+h1{
+  font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",Antonio,sans-serif;
+  font-weight:600;font-size:clamp(76px,12.4vw,208px);line-height:.9;letter-spacing:.04em;
+  text-shadow:0 0 60px rgba(190,235,220,.2),0 0 140px rgba(160,220,255,.12);
+}
+h1 span{display:inline-block}
+.cap{
+  margin-top:calc(34*var(--u));font-size:calc(18*var(--u));line-height:1.8;
+  color:rgba(245,239,226,.8);max-width:26em;
+}
+.cap b{font-weight:500;color:var(--cream)}
+.hero::before{
+  content:"";position:absolute;inset:-10% -5%;
+  background:radial-gradient(ellipse 62% 52% at 50% 44%,rgba(3,5,4,.72) 0%,rgba(3,5,4,.42) 44%,rgba(3,5,4,0) 72%);
+  pointer-events:none;z-index:-1;
+}
+.go{
+  display:grid;place-items:center;margin-top:calc(40*var(--u));
+  width:calc(62*var(--u));height:calc(62*var(--u));
+  border:1.5px solid rgba(245,239,226,.5);border-radius:50%;
+  transition:background .35s,color .35s,border-color .35s,transform .35s;
+}
+.go:hover{background:var(--cream);color:var(--ink);border-color:var(--cream);transform:translateY(3px)}
+.go svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+
+/* ---------- 右下角 ---------- */
+.corner{
+  position:fixed;right:calc(44*var(--u));bottom:calc(40*var(--u));z-index:6;
+  display:flex;align-items:center;gap:calc(16*var(--u));
+  font-size:calc(11.5*var(--u));letter-spacing:.2em;text-transform:uppercase;color:rgba(245,239,226,.66);
+}
+.corner{transition:opacity .4s ease}
+.corner.off{opacity:0;pointer-events:none}
+.corner i{width:1px;height:calc(24*var(--u));background:rgba(245,239,226,.35)}
+.sound{display:grid;place-items:center;width:calc(30*var(--u));height:calc(30*var(--u));opacity:.8;transition:opacity .3s}
+.sound:hover{opacity:1}
+.sound svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
+.sound .w{transition:opacity .3s}
+.sound[aria-pressed="false"] .w{opacity:0}
+.sound[aria-pressed="false"] .x{opacity:1}
+.sound[aria-pressed="true"] .x{opacity:0}
+
+/* ---------- 内容区 ---------- */
+.page{
+  position:relative;z-index:2;
+  background:linear-gradient(180deg,rgba(4,6,5,0) 0,rgba(4,6,5,.86) 8%,rgba(4,6,5,.97) 18%,var(--bg) 34%);
+}
+.wrap{max-width:1180px;margin:0 auto;padding:0 calc(44*var(--u))}
+.section{padding:clamp(84px,9vw,132px) 0;scroll-margin-top:72px}
+.contact{scroll-margin-top:72px}
+.label{
+  display:flex;align-items:baseline;gap:16px;margin-bottom:clamp(34px,4vw,56px);
+  font-size:11.5px;letter-spacing:.3em;text-transform:uppercase;color:rgba(245,239,226,.45);
+}
+.label b{font-family:Antonio,sans-serif;font-weight:400;font-size:13px;letter-spacing:.1em;color:rgba(245,239,226,.7)}
+.label::after{content:"";flex:1;height:1px;background:var(--line-soft)}
+
+h2{font-size:clamp(28px,3.1vw,40px);line-height:1.32;font-weight:600;letter-spacing:-.01em;text-wrap:balance}
+.lead{font-size:clamp(16px,1.5vw,18.5px);line-height:1.95;color:rgba(245,239,226,.72);max-width:46em}
+.lead strong{color:var(--cream);font-weight:500}
+
+.about-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.08fr);gap:clamp(36px,5vw,72px);align-items:start}
+.about-intro h2{margin-bottom:22px}
+.about-intro .lead b{color:#bff0dd;font-weight:500}
+
+.skills{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.skill{
+  border:1px solid var(--line-soft);border-radius:16px;padding:22px 22px 20px;
+  background:linear-gradient(180deg,rgba(245,239,226,.045),rgba(245,239,226,.012));
+  transition:border-color .35s,transform .35s,background .35s;
+}
+.skill:hover{border-color:rgba(245,239,226,.24);transform:translateY(-3px)}
+.skills .skill:last-child{grid-column:1/-1}
+.skill h3{font-size:14px;font-weight:600;letter-spacing:.02em;margin-bottom:12px;display:flex;align-items:center;gap:9px}
+.skill h3 s{width:5px;height:5px;border-radius:50%;background:#8fe3c4;box-shadow:0 0 10px #8fe3c4;text-decoration:none}
+.skill p{font-size:13.2px;line-height:1.85;color:rgba(245,239,226,.6)}
+
+/* 工作经历 */
+.timeline{display:grid;gap:0;margin-top:clamp(48px,5vw,72px);border-top:1px solid var(--line-soft)}
+.tl-row{
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr) auto;gap:28px;
+  padding:26px 0;border-bottom:1px solid var(--line-soft);align-items:baseline;
+}
+.tl-role{font-size:clamp(16px,1.5vw,19px);font-weight:600}
+.tl-role span{display:block;font-size:13px;font-weight:400;color:rgba(245,239,226,.5);margin-top:6px;letter-spacing:.04em}
+.tl-desc{font-size:13.8px;line-height:1.9;color:rgba(245,239,226,.62);padding-right:16px}
+.tl-time{font-family:Antonio,sans-serif;font-size:12.5px;letter-spacing:.12em;color:rgba(245,239,226,.45);white-space:nowrap;padding-top:3px;min-width:104px;text-align:right}
+
+/* 项目 */
+.projects{display:grid;gap:18px}
+.project{
+  border:1px solid var(--line-soft);border-radius:20px;padding:clamp(24px,3vw,40px);
+  background:linear-gradient(180deg,rgba(245,239,226,.04),rgba(245,239,226,.008));
+  transition:border-color .4s,background .4s,transform .4s;
+}
+.project:hover{border-color:rgba(245,239,226,.22);background:linear-gradient(180deg,rgba(245,239,226,.06),rgba(245,239,226,.015));transform:translateY(-2px)}
+.p-head{display:flex;align-items:baseline;gap:18px;flex-wrap:wrap;margin-bottom:14px}
+.p-index{font-family:Antonio,sans-serif;font-size:13px;letter-spacing:.12em;color:rgba(245,239,226,.38)}
+.p-title{font-size:clamp(19px,2vw,25px);font-weight:600;line-height:1.4;letter-spacing:-.01em}
+.p-meta{margin-left:auto;font-family:Antonio,sans-serif;font-size:12.5px;letter-spacing:.12em;color:rgba(245,239,226,.5);white-space:nowrap}
+.p-tag{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#9fe6cb;border:1px solid rgba(159,230,203,.28);border-radius:99px;padding:3px 11px;margin-left:4px}
+.stack{display:flex;flex-wrap:wrap;gap:7px;margin:0 0 18px}
+.stack span{font-size:11.8px;letter-spacing:.04em;color:rgba(245,239,226,.55);border:1px solid var(--line-soft);border-radius:99px;padding:4px 11px;background:rgba(245,239,226,.03)}
+.p-desc{font-size:14.2px;line-height:1.9;color:rgba(245,239,226,.7);max-width:62em;margin-bottom:16px}
+.p-list{list-style:none;display:grid;gap:9px;max-width:70em}
+.p-list li{position:relative;padding-left:18px;font-size:13.6px;line-height:1.85;color:rgba(245,239,226,.6)}
+.p-list li::before{content:"";position:absolute;left:2px;top:.72em;width:5px;height:5px;border-radius:50%;background:rgba(143,227,196,.65)}
+
+/* 联系 */
+.contact{border-top:1px solid var(--line-soft);padding:clamp(72px,8vw,120px) 0 60px}
+.contact h2{font-size:clamp(34px,5vw,64px);line-height:1.2;letter-spacing:-.02em}
+.contact-mail{
+  display:inline-flex;align-items:center;gap:14px;margin-top:28px;
+  font-family:Antonio,sans-serif;font-size:clamp(20px,3vw,38px);letter-spacing:.02em;
+  border-bottom:1px solid rgba(245,239,226,.3);padding-bottom:8px;transition:opacity .3s,border-color .3s;
+}
+.contact-mail:hover{opacity:.75;border-color:var(--cream)}
+.contact-grid{display:flex;flex-wrap:wrap;gap:56px;margin-top:52px}
+.c-item span{display:block;font-size:11.5px;letter-spacing:.26em;text-transform:uppercase;color:rgba(245,239,226,.42);margin-bottom:10px}
+.c-item b{font-weight:500;font-size:15px;letter-spacing:.02em}
+.footer{
+  display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;
+  margin-top:clamp(64px,7vw,110px);padding-top:26px;border-top:1px solid var(--line-soft);
+  font-size:12px;letter-spacing:.1em;color:rgba(245,239,226,.38);
+}
+
+/* 入场动画 */
+.reveal{opacity:0;transform:translateY(26px);transition:opacity .9s cubic-bezier(.2,.7,.2,1),transform .9s cubic-bezier(.2,.7,.2,1)}
+.reveal.in{opacity:1;transform:none}
+
+/* 加载 */
+.loader{position:fixed;inset:0;z-index:20;display:grid;place-items:center;background:#000;transition:opacity 1s ease;pointer-events:none}
+.loader.gone{opacity:0}
+.loader span{width:9px;height:9px;border-radius:50%;background:var(--cream);animation:pulse 1.2s ease-in-out infinite;box-shadow:0 0 20px rgba(245,239,226,.8)}
+@keyframes pulse{50%{transform:scale(.4);opacity:.35}}
+
+a:focus-visible,button:focus-visible{outline:2px solid var(--cream);outline-offset:3px}
+
+/* ---------- 响应式 ---------- */
+@media (max-width:980px){
+  .about-grid{grid-template-columns:1fr;gap:40px}
+  .tl-row{grid-template-columns:1fr;gap:8px}
+  .tl-role{order:1}
+  .tl-role span{display:inline;margin-left:10px}
+  .tl-time{order:2;padding-top:0}
+  .tl-desc{order:3;margin-top:6px}
+}
+@media (max-width:820px){
+  :root{--u:1px}
+  header{padding:18px 18px}
+  .logo{font-size:20px}
+  .logo i{display:none}
+  nav{gap:16px}
+  nav a:not(.pill){font-size:11.5px;letter-spacing:.12em}
+  nav a.hide-sm{display:none}
+  .pill{height:38px;padding:0 16px;font-size:12px}
+  .hero{padding:120px 22px 80px}
+  h1{font-size:clamp(64px,19vw,104px);letter-spacing:.02em}
+  .eyebrow{font-size:10px;letter-spacing:.3em}
+  .cap{font-size:15px;margin-top:26px;line-height:1.85}
+  .go{width:56px;height:56px;margin-top:30px}
+  .wrap{padding:0 22px}
+  .skills{grid-template-columns:1fr}
+  .corner{
+    left:22px;right:22px;bottom:22px;justify-content:space-between;
+    font-size:10px;letter-spacing:.18em;
+  }
+  .corner i{display:none}
+  .sound{width:26px;height:26px}
+  .p-meta{margin-left:0;width:100%}
+  .footer{flex-direction:column;align-items:flex-start;gap:8px}
+}
+@media (prefers-reduced-motion:reduce){
+  .loader span{animation:none}
+  .reveal{opacity:1;transform:none;transition:none}
+  html{scroll-behavior:auto}
+}
+</style>
+</head>
+<body>
+
+<div id="valley" aria-hidden="true"><canvas></canvas></div>
+<div class="vignette" id="vignette"></div>
+<div class="grain"></div>
+
+<div class="ui" id="ui">
+  <header id="header">
+    <a class="logo" href="#top" aria-label="邹浔">邹浔<i>JAVA ENGINEER</i></a>
+    <nav aria-label="主导航">
+      <a href="#about">关于我</a>
+      <a href="#work">项目经历</a>
+      <a href="resume.pdf" target="_blank" rel="noopener" class="hide-sm">简历</a>
+      <a class="pill" href="#contact">聊聊合作</a>
+    </nav>
+  </header>
+
+  <section class="hero" id="top">
+    <p class="eyebrow">Java Engineer · AI Agent Developer</p>
+    <h1><span>邹浔</span></h1>
+    <p class="cap">
+      像植物一样生长，而不是被堆砌。<br>
+      <b>4 年 Java 后端</b>，从高并发链路到时序一致的分布式事务，<br>
+      也把大模型 Agent 稳稳地落进生产环境。
+    </p>
+    <a class="go" href="#about" id="go" aria-label="继续向下，关于我">
+      <svg viewBox="0 0 24 24"><path d="M12 5v14M6 13l6 6 6-6"/></svg>
+    </a>
+  </section>
+
+  <div class="corner">
+    <span>向下滚动 <span style="opacity:.45">/ Scroll</span></span>
+    <i></i>
+    <button class="sound" id="sound" aria-pressed="false" aria-label="环境音开关">
+      <svg viewBox="0 0 24 24">
+        <path d="M4 9.5v5h3.5L12 18V6L7.5 9.5Z"/>
+        <path class="w" d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/>
+        <path class="x" d="m16 10 4 4m0-4-4 4"/>
+      </svg>
+    </button>
+  </div>
+
+  <div class="page">
+    <div class="wrap">
+
+      <!-- 关于我 -->
+      <section class="section" id="about">
+        <div class="label"><b>01</b> 关于我</div>
+        <div class="about-grid">
+          <div class="about-intro">
+            <h2>把复杂的问题，<br>拆成能长期生长的系统。</h2>
+            <p class="lead">
+              我是邹浔，一名 Java 开发工程师，4 年后端经验，同时具备 AI 智能体（Agent / RAG / MCP）的工程化落地经验。
+              习惯从需求拆解开始，把架构、核心链路与边界条件一起想清楚——让系统不只是「能跑」，而是<b>扛得住、查得清、改得动</b>。
+            </p>
+            <p class="lead" style="margin-top:20px">
+              日常深度使用 WorkBuddy、Claude Code、Cursor 等 AI 工具，并搭建自己的 Agent 研发工作流，把重复劳动交给自动化；
+              同时关注高并发与分布式一致性、JVM 与 SQL 性能，也研究怎么给大模型加上护栏：状态机编排、人机协同审批、检索质量评测。
+            </p>
+          </div>
+
+          <div class="skills">
+            <div class="skill">
+              <h3><s></s>AI 智能体与大模型</h3>
+              <p>LangChain4j / LangGraph 多 Agent 编排 · Function & Tool Calling · MCP · RAG 双路召回 + Rerank · Memory 设计与上下文压缩 · Agent 效果评测（检索准确率 / 任务成功率 / 幻觉率）</p>
+            </div>
+            <div class="skill">
+              <h3><s></s>AI 工具链与研发工作流</h3>
+              <p>深度使用 WorkBuddy、Claude Code、Cursor、Codex、Trae 等 AI 编码工具 · MCP 服务器接入与自定义工具封装 · 搭建「需求拆解 → 编码 → 评审 → 测试 → 部署」的 Agent 工作流 · 结合 CI/CD 落地自动化，让 AI 真正融进日常研发链路</p>
+            </div>
+            <div class="skill">
+              <h3><s></s>Java 后端与微服务</h3>
+              <p>Spring Boot / Cloud Alibaba / Gateway / Nacos / Sentinel / Seata / Dubbo · MyBatis-Plus / JPA · MySQL 调优、分库分表、主从复制 · Redis 分布式锁与多级缓存 · ES / MongoDB / Oracle</p>
+            </div>
+            <div class="skill">
+              <h3><s></s>中间件与数据同步</h3>
+              <p>RabbitMQ / Kafka / RocketMQ 削峰解耦 · XXL-JOB 分布式调度 · canal + Kafka + MySQL 数据同步 · Camunda 工作流 · MinIO 对象存储 · CompletableFuture 异步编排与线程池隔离</p>
+            </div>
+            <div class="skill">
+              <h3><s></s>Python 与运维</h3>
+              <p>Python / FastAPI / LangChain / Streamlit · uv / Poetry 依赖管理 · JVM 调优（MAT、Arthas、GCViewer）· Docker / K8s / Linux · 阿里云 CI/CD 自动化部署</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="timeline">
+          <div class="tl-row reveal">
+            <div class="tl-role">中瑞数通（北京）科技有限公司<span>Java 开发工程师</span></div>
+            <div class="tl-desc">负责企业级平台与 AI 智能体项目的架构设计与核心交付：智能客服 Agent、智慧医疗问诊、企业知识库、因私出境流程平台与国网电财移动应用。</div>
+            <div class="tl-time">2023.12 — 至今</div>
+          </div>
+          <div class="tl-row reveal">
+            <div class="tl-role">北京阿米车网络科技有限公司<span>Java 开发工程师</span></div>
+            <div class="tl-desc">面向汽车零配件厂商的生产追溯系统，主导原料服务与追溯核心模块的库表设计、领域建模与幂等防重方案。</div>
+            <div class="tl-time">2022.07 — 2023.10</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 项目经历 -->
+      <section class="section" id="work">
+        <div class="label"><b>02</b> 项目经历</div>
+
+        <div class="projects">
+
+          <article class="project reveal">
+            <div class="p-head">
+              <span class="p-index">P/01</span>
+              <h3 class="p-title">企业智能客服与高风险工单自动化处理 Agent 系统</h3>
+              <span class="p-tag">主导</span>
+              <span class="p-meta">2026.08 — 至今</span>
+            </div>
+            <div class="stack">
+              <span>Python</span><span>LangGraph</span><span>FastAPI</span><span>LangChain</span><span>SQLAlchemy</span><span>GLM / OpenAI API</span><span>MemorySaver</span>
+            </div>
+            <p class="p-desc">
+              面向企业客服场景的大模型 Agent 系统，通过工具调用实现工单自动查询、智能问诊与业务处理。
+              重点攻克大模型幻觉与高风险操作失控，引入状态机编排、人机协同审批与多层安全护栏，实现敏感业务的安全闭环。
+            </p>
+            <ul class="p-list">
+              <li>基于 LangGraph StateGraph 设计 Agent 工作流，解耦 chatbot_node 与 safe_tool_executor_node，实现多轮上下文的条件路由。</li>
+              <li>引入 HITL 高风险审批闭环：interrupt() 挂起 + FastAPI 异步路由，高风险动作冻结待审，凭恢复信号安全续跑。</li>
+              <li>设计多层安全护栏与静态硬拦截（SecurityInterceptor + 参数校验引擎），在工具调用前阻断越权调用与恶意参数注入。</li>
+              <li>集成 MemorySaver 检查点与 SQLAlchemy 会话管理，保证多轮会话状态可追溯、并发下可靠。</li>
+            </ul>
+          </article>
+
+          <article class="project reveal">
+            <div class="p-head">
+              <span class="p-index">P/02</span>
+              <h3 class="p-title">智医问诊系统</h3>
+              <span class="p-tag">组长</span>
+              <span class="p-meta">2026.05 — 至今</span>
+            </div>
+            <div class="stack">
+              <span>Spring Boot 3</span><span>JDK 17</span><span>MySQL 8</span><span>Redis</span><span>RabbitMQ</span><span>LangChain4j</span><span>GLM-4</span><span>Chroma</span><span>MCP</span>
+            </div>
+            <p class="p-desc">
+              面向互联网医院与医患在线协同场景，覆盖预问诊、接诊、门诊预约、处方、检查检验、复诊随访等核心链路；
+              在医疗主链路之上引入 AI 医助，把预问诊、症状归纳、周边医院与号源推荐、报告解释限定在辅助环节。
+            </p>
+            <ul class="p-list">
+              <li>主导 AI 智能导诊与高并发挂号预约主链路的架构设计与核心交付，覆盖导诊问诊、号源排班、抢号、电子病历、处方、支付、履约随访等 12 个模块。</li>
+              <li>统一状态流转、幂等校验与异常补偿口径，覆盖意图识别路由、号源抢号扣减、订单支付与延时释放。</li>
+              <li>基于 LangChain4j + 智谱 GLM-4 设计多 Agent 架构，通过 Function/Tool Calling 绑定挂号与排班工具。</li>
+              <li>设计医疗级 Advanced RAG：Dense 向量 + BM25 医疗词条双路混合召回，智谱 Rerank 二阶段精排；用 JMeter 压测调优保障高吞吐。</li>
+            </ul>
+          </article>
+
+          <article class="project reveal">
+            <div class="p-head">
+              <span class="p-index">P/03</span>
+              <h3 class="p-title">智慧平台 · 企业知识库</h3>
+              <span class="p-meta">2024.10 — 2025.08</span>
+            </div>
+            <div class="stack">
+              <span>Spring Boot</span><span>LangChain4j</span><span>Chroma</span><span>Redis</span><span>MySQL 8</span><span>Docker</span>
+            </div>
+            <p class="p-desc">
+              针对企业内部文档分散、检索效率低的问题，构建基于 RAG 的企业级知识管理平台，实现基于私有文档的精准问答与检索服务。
+            </p>
+            <ul class="p-list">
+              <li>基于 Spring Boot + LangChain4j 搭建 RAG 检索管线，实现多格式文档的自动解析、清洗与分块。</li>
+              <li>两阶段检索优化：Embedding 向量召回 + Rerank 精排，显著提升高密度专业文档的检索精准度。</li>
+              <li>基于 Redis 设计对话 Session 缓存与滑动窗口上下文压缩；为大模型调用设计超时重试与降级兜底。</li>
+            </ul>
+          </article>
+
+          <article class="project reveal">
+            <div class="p-head">
+              <span class="p-index">P/04</span>
+              <h3 class="p-title">因私出境数字化平台</h3>
+              <span class="p-tag">并行参与</span>
+              <span class="p-meta">2025.10 — 至今</span>
+            </div>
+            <div class="stack">
+              <span>Spring Boot</span><span>Camunda</span><span>Gateway</span><span>MyBatis-Plus</span><span>MinIO</span><span>Redis</span><span>JWT</span>
+            </div>
+            <p class="p-desc">
+              针对国网人员因私出国（境）证件管理需求，将线下繁琐的申请流程线上化，由 Camunda 工作流引擎驱动审批流转。
+            </p>
+            <ul class="p-list">
+              <li>基于 JWT + Redis 实现分布式单点登录与 RBAC 动态权限；用路径枚举模型 + 二级缓存优化组织树递归检索。</li>
+              <li>EasyExcel 分批流式解析 + MyBatis 批处理，实现万级证件数据秒级导入；Zip 动态压缩流 + 并行拉取优化批量下载。</li>
+              <li>Caffeine + Redis 二级缓存降低数据库 I/O，采用「先更新库、再删缓存」的最终一致性策略，防范击穿与雪崩。</li>
+            </ul>
+          </article>
+
+          <article class="project reveal">
+            <div class="p-head">
+              <span class="p-index">P/05</span>
+              <h3 class="p-title">电财移动应用</h3>
+              <span class="p-tag">并行参与</span>
+              <span class="p-meta">2023.12 — 至今</span>
+            </div>
+            <div class="stack">
+              <span>Spring Cloud Gateway</span><span>Nacos</span><span>Kafka</span><span>XXL-JOB</span><span>MinIO</span><span>OAuth2.0</span>
+            </div>
+            <p class="p-desc">
+              依托「国网 APP」构建国网资金服务 APP 与电财 APP 两个独立移动应用，面向客户与员工提供综合金融及管理服务。
+            </p>
+            <ul class="p-list">
+              <li>基于 XXL-JOB 设计对端数据抓取与增量同步机制；内外网双向同步采用消息队列 / 安全网关 + 增量日志校验，实现秒级一致。</li>
+              <li>负责权限认证模块开发与升级（RBAC 动态权限控制、Token 无感刷新）。</li>
+              <li>集成 MinIO 封装统一文件服务 SDK；使用 CompletableFuture + 自定义隔离线程池做异步并行编排。</li>
+            </ul>
+          </article>
+
+          <article class="project reveal">
+            <div class="p-head">
+              <span class="p-index">P/06</span>
+              <h3 class="p-title">汽车零配件可溯源系统</h3>
+              <span class="p-meta">2022.07 — 2023.10</span>
+            </div>
+            <div class="stack">
+              <span>Spring Cloud</span><span>Kafka</span><span>Redis + Lua</span><span>XXL-JOB</span><span>MyBatis-Plus</span><span>Docker</span>
+            </div>
+            <p class="p-desc">
+              通过生产计划与工单调度、生产溯源、质量管控、成品仓储与发货追溯，帮助零配件厂商实现精益制造。
+            </p>
+            <ul class="p-list">
+              <li>主导原料服务与追溯核心模块的数据库表结构设计与业务领域建模。</li>
+              <li>基于 Redis + Lua 与自定义注解实现分布式幂等防重锁，阻断网络抖动或重复扫码导致的原料重复扣减。</li>
+              <li>在工位高频报工与核销峰值期，对统计日志、历史溯源导出等非核心链路自动降级兜底。</li>
+            </ul>
+          </article>
+
+        </div>
+      </section>
+
+      <!-- 教育与联系 -->
+      <section class="contact" id="contact">
+        <div class="label"><b>03</b> 联系</div>
+        <h2>有合适的岗位或项目？<br>聊聊看。</h2>
+        <a class="contact-mail" href="mailto:13870215105@163.com">
+          13870215105@163.com
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 18 18 6M9 6h9v9"/></svg>
+        </a>
+
+        <div class="contact-grid">
+          <div class="c-item"><span>电话 / 微信</span><b>13870215105</b></div>
+          <div class="c-item"><span>状态</span><b>在职 · 随时到岗</b></div>
+          <div class="c-item"><span>教育背景</span><b>江西财经大学现代经济管理学院 · 计算机科学与技术（本科）2018.09 — 2021.07</b></div>
+          <div class="c-item"><span>简历</span><b><a href="resume.pdf" target="_blank" rel="noopener" style="border-bottom:1px solid rgba(245,239,226,.3)">下载 PDF</a></b></div>
+        </div>
+
+        <div class="footer">
+          <span>© 2026 邹浔 · Java Engineer</span>
+          <span>Built with care, grown with practice.</span>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<div class="loader" id="loader"><span></span></div>
+
+<script>
+(function () {
+  'use strict';
+
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ================= 夜之花谷 ================= */
+  var canvas = document.querySelector('#valley canvas');
+  var ctx = canvas.getContext('2d', { alpha: false });
+  var W = 0, H = 0, DPR = 1;
+  var F = 900;              // 焦距
+  var CAM_Y = 54;           // 相机离地高度
+  var RANGE = 7600;         // 可视深度
+  var NEAR = 140;           // 最近回收距离
+
+  var flowers = [], leaves = [], dust = [], bokeh = [];
+  var camZ = 0, camX = 0, targetCamX = 0;
+  var mouse = { x: -9999, y: -9999, nx: 0.5, ny: 0.5 };
+  var scrollVel = 0;
+  var running = true;
+  var lastT = 0;
+
+  var PALETTES = [
+    ['#ffffff', '#c9f0ff', '#2b6f8a'],  // 冰蓝
+    ['#ffffff', '#d8ffe9', '#2f7a5a'],  // 薄荷
+    ['#ffffff', '#ffd9ea', '#7a3b58'],  // 夜粉
+    ['#fdfbf4', '#fff0c4', '#7a6230']   // 暖白
+  ];
+
+  function makeSprite(mid, outer) {
+    var s = 96, c = document.createElement('canvas');
+    c.width = c.height = s;
+    var g = c.getContext('2d');
+    var grad = g.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2);
+    grad.addColorStop(0, 'rgba(255,255,255,1)');
+    grad.addColorStop(0.16, mid);
+    grad.addColorStop(0.4, outer);
+    grad.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = grad;
+    g.fillRect(0, 0, s, s);
+    return c;
+  }
+  var sprites = PALETTES.map(function (p) { return makeSprite(p[1], p[2]); });
+  var leafSprite = (function () {
+    var s = 64, c = document.createElement('canvas');
+    c.width = c.height = s;
+    var g = c.getContext('2d');
+    var grad = g.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2);
+    grad.addColorStop(0, 'rgba(220,255,235,.95)');
+    grad.addColorStop(0.35, 'rgba(90,170,135,.55)');
+    grad.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = grad;
+    g.fillRect(0, 0, s, s);
+    return c;
+  })();
+
+  function rand(a, b) { return a + Math.random() * (b - a); }
+
+  function makeFlower() {
+    var z = NEAR + Math.pow(Math.random(), 1.32) * RANGE;
+    var side = Math.random() < 0.5 ? -1 : 1;
+    // 中间留一条隐约的路径，两侧更密
+    var spread = Math.pow(Math.random(), 0.7) * (z * 0.52 + 90);
+    return {
+      x: side * spread + side * 40,
+      y: rand(2, 46),
+      z: z,
+      r: rand(3.2, 10.5),
+      p: Math.floor(Math.random() * sprites.length),
+      phase: rand(0, Math.PI * 2),
+      sway: rand(4, 18)
+    };
+  }
+
+  /* 前景虚焦光斑：贴着镜头，制造景深与包围感 */
+  function makeBokeh() {
+    return {
+      x: rand(-1, 1),
+      y: rand(0.42, 1.05),
+      z: rand(48, 190),
+      r: rand(14, 42),
+      p: Math.floor(Math.random() * sprites.length),
+      phase: rand(0, Math.PI * 2),
+      drift: rand(6, 20)
+    };
+  }
+
+  function makeLeaf() {
+    var z = rand(1400, RANGE + 900);
+    return {
+      x: rand(-1, 1) * (z * 0.9 + 400),
+      y: rand(-30, 10),
+      z: z,
+      r: rand(2.2, 6),
+      phase: rand(0, Math.PI * 2),
+      sway: rand(2, 9)
+    };
+  }
+
+  function buildField() {
+    var mobile = W < 820;
+    var nf = mobile ? 900 : 1750;
+    var nl = mobile ? 900 : 1500;
+    var nd = mobile ? 46 : 90;
+    var nb = mobile ? 12 : 18;
+    flowers = []; leaves = []; dust = []; bokeh = [];
+    for (var i = 0; i < nf; i++) flowers.push(makeFlower());
+    for (var j = 0; j < nl; j++) leaves.push(makeLeaf());
+    for (var b = 0; b < nb; b++) bokeh.push(makeBokeh());
+    for (var k = 0; k < nd; k++) {
+      dust.push({ x: Math.random(), y: Math.random(), z: rand(0, RANGE), s: rand(0.5, 1.9), ph: rand(0, 6.28) });
+    }
+  }
+
+  function resize() {
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.width = Math.floor(W * DPR);
+    canvas.height = Math.floor(H * DPR);
+    canvas.style.width = W + 'px';
+    canvas.style.height = H + 'px';
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    F = Math.max(620, H * 0.98);
+    buildField();
+  }
+
+  /* 背景天空与地平线辉光 */
+  function paintSky(horizon) {
+    var sky = ctx.createLinearGradient(0, 0, 0, H);
+    sky.addColorStop(0, '#040605');
+    sky.addColorStop(0.42, '#050a09');
+    sky.addColorStop(1, '#030504');
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, W, H);
+
+    ctx.globalCompositeOperation = 'lighter';
+    var glow = ctx.createRadialGradient(W * 0.5, horizon, 0, W * 0.5, horizon, Math.max(W, H) * 0.62);
+    glow.addColorStop(0, 'rgba(70,150,130,.20)');
+    glow.addColorStop(0.35, 'rgba(40,90,90,.09)');
+    glow.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = glow;
+    ctx.fillRect(0, 0, W, H);
+    ctx.globalCompositeOperation = 'source-over';
+  }
+
+  /* 光束 */
+  function paintRays(t, horizon) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.translate(W * 0.5, horizon * 0.92);
+    for (var i = 0; i < 4; i++) {
+      var a = -0.5 + i * 0.34 + Math.sin(t * 0.00006 + i) * 0.05;
+      ctx.save();
+      ctx.rotate(a);
+      var g = ctx.createLinearGradient(0, 0, 0, -H * 0.95);
+      g.addColorStop(0, 'rgba(180,255,235,.022)');
+      g.addColorStop(1, 'rgba(180,255,235,0)');
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.moveTo(-W * 0.012, 0);
+      ctx.lineTo(-W * 0.11, -H * 0.95);
+      ctx.lineTo(W * 0.06, -H * 0.95);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+    ctx.restore();
+  }
+
+  function project(z, x, y, horizon) {
+    var s = F / z;
+    return { s: s, x: W * 0.5 + (x - camX) * s, y: horizon + (CAM_Y - y) * s };
+  }
+
+  function drawLeaves(t, horizon) {
+    for (var i = 0; i < leaves.length; i++) {
+      var o = leaves[i];
+      var dz = o.z - camZ;
+      if (dz < NEAR) { o.z += RANGE + 900 - NEAR; dz = o.z - camZ; }
+      if (dz > RANGE + 900) continue;
+
+      var s = F / dz;
+      var sway = Math.sin(t * 0.0007 + o.phase) * o.sway;
+      var sx = W * 0.5 + (o.x + sway - camX) * s;
+      var sy = horizon + (CAM_Y - o.y) * s;
+      var r = o.r * s;
+      if (r < 0.15 || sx < -60 || sx > W + 60 || sy < -60 || sy > H + 60) continue;
+
+      var fog = 1 - dz / (RANGE + 900);
+      var a = Math.max(0, fog) * 0.34;
+      var d = (sx - mouse.x) * (sx - mouse.x) + (sy - mouse.y) * (sy - mouse.y);
+      if (d < 26000) {
+        var dist = Math.sqrt(d) || 1;
+        var push = (1 - dist / 161) * 14;
+        sx += (sx - mouse.x) / dist * push;
+        sy += (sy - mouse.y) / dist * push;
+        a += 0.12 * (1 - dist / 161);
+      }
+      ctx.globalAlpha = a;
+      ctx.drawImage(leafSprite, sx - r, sy - r, r * 2, r * 2);
+    }
+  }
+
+  function drawFlowers(t, horizon) {
+    var mr = Math.min(W, H) * 0.3;
+    for (var i = 0; i < flowers.length; i++) {
+      var o = flowers[i];
+      var dz = o.z - camZ;
+      if (dz < NEAR) { o.z += RANGE - NEAR; dz = o.z - camZ; }
+      if (dz > RANGE) continue;
+
+      var s = F / dz;
+      var sway = Math.sin(t * 0.00085 + o.phase) * o.sway;
+      var bob = Math.cos(t * 0.0011 + o.phase) * 2.2;
+      var baseY = horizon + CAM_Y * s;
+      var sx = W * 0.5 + (o.x + sway - camX) * s;
+      var sy = horizon + (CAM_Y - o.y - bob) * s;
+
+      var near = 1 - dz / RANGE;
+
+      // 茎：只有近处的花才画，远处理应糊成一片
+      if (dz < 1700 && s > 0.12) {
+        ctx.globalAlpha = Math.pow(near, 1.6) * 0.085;
+        ctx.strokeStyle = 'rgba(160,225,195,1)';
+        ctx.lineWidth = Math.max(0.5, s * 0.3);
+        ctx.beginPath();
+        ctx.moveTo(sx, Math.min(sy + (baseY - sy) * 0.55, H + 40));
+        ctx.lineTo(sx, sy);
+        ctx.stroke();
+      }
+
+      var r = o.r * s * (0.34 + 0.76 * Math.min(1, near * 1.45));
+      if (r < 0.22 || sx < -80 || sx > W + 80 || sy < -80 || sy > H + 80) continue;
+
+      var a = Math.pow(Math.max(0, near), 0.5) * 1;
+
+      // 鼠标推开 + 靠近鼠标发亮
+      var dx = sx - mouse.x, dy = sy - mouse.y;
+      var d2 = dx * dx + dy * dy;
+      var glow = 0;
+      if (d2 < mr * mr) {
+        var dist = Math.sqrt(d2) || 1;
+        var k = 1 - dist / mr;
+        var push = k * k * 78;
+        sx += dx / dist * push;
+        sy += dy / dist * push;
+        glow = k * 0.85;
+        a = Math.min(1, a + glow * 0.55);
+      }
+
+      ctx.globalAlpha = a;
+      var rr = r * (1 + glow * 0.85);
+      ctx.drawImage(sprites[o.p], sx - rr, sy - rr, rr * 2, rr * 2);
+    }
+  }
+
+  /* 地平线雾带：把远处的花压进雾里，拉开纵深 */
+  /* 前景虚焦光斑：贴近镜头，撑住画面下缘 */
+  function drawBokeh(t) {
+    ctx.globalCompositeOperation = 'lighter';
+    for (var i = 0; i < bokeh.length; i++) {
+      var o = bokeh[i];
+      var px = (o.x * 0.5 + 0.5) * W + Math.sin(t * 0.00035 + o.phase) * o.drift + (camX * 0.22);
+      var py = o.y * H + Math.cos(t * 0.00045 + o.phase) * (o.drift * 0.6);
+      var pulse = 1 + Math.sin(t * 0.0006 + o.phase) * 0.06;
+      var rr = o.r * pulse;
+      ctx.globalAlpha = 0.06 + 0.045 * (1 - o.z / 190);
+      ctx.drawImage(sprites[o.p], px - rr, py - rr, rr * 2, rr * 2);
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function paintMist(horizon) {
+    var top = horizon - 26;
+    var g = ctx.createLinearGradient(0, top, 0, top + 190);
+    g.addColorStop(0, 'rgba(5,12,10,.85)');
+    g.addColorStop(0.45, 'rgba(5,12,10,.38)');
+    g.addColorStop(1, 'rgba(5,12,10,0)');
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = g;
+    ctx.fillRect(0, top, W, 190);
+
+    // 画面下缘的地气：让近景不至于落进死黑
+    var gb = ctx.createLinearGradient(0, H, 0, H * 0.58);
+    gb.addColorStop(0, 'rgba(26,58,48,.5)');
+    gb.addColorStop(0.55, 'rgba(14,32,27,.22)');
+    gb.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.fillStyle = gb;
+    ctx.fillRect(0, H * 0.58, W, H * 0.42);
+
+    ctx.globalCompositeOperation = 'lighter';
+  }
+
+  function drawDust(t) {
+    ctx.fillStyle = '#eaf7f0';
+    for (var i = 0; i < dust.length; i++) {
+      var p = dust[i];
+      p.z -= 18 * 0.016;
+      if (p.z < 200) p.z += RANGE;
+      var s = F / p.z;
+      var x = p.x * W + Math.sin(t * 0.0004 + p.ph) * 14;
+      var y = p.y * H + Math.cos(t * 0.0005 + p.ph) * 12;
+      var a = 0.05 + 0.16 * (1 - p.z / RANGE);
+      ctx.globalAlpha = a;
+      var size = p.s * (0.6 + s * 0.02);
+      ctx.fillRect(x, y, size, size);
+    }
+  }
+
+  function render(t) {
+    if (!W) { resize(); }
+
+    var dt = lastT ? Math.min(0.05, (t - lastT) / 1000) : 0.016;
+    lastT = t;
+
+    var horizon = H * 0.455 + Math.sin(t * 0.00018) * 3;
+
+    if (!reduceMotion) {
+      var boost = Math.min(1, Math.abs(scrollVel) * 0.055);
+      var speed = 34 + boost * 150;
+      camZ += speed * dt;
+      camX += (targetCamX - camX) * Math.min(1, dt * 2.4);
+
+      // 速度越快，暗角越紧
+      var vig = document.getElementById('vignette');
+      if (vig) vig.style.opacity = String(0.9 + boost * 0.1);
+    }
+
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    paintSky(horizon);
+    paintRays(t, horizon);
+
+    ctx.globalCompositeOperation = 'lighter';
+    drawLeaves(t, horizon);
+    drawFlowers(t, horizon);
+    paintMist(horizon);
+    ctx.globalCompositeOperation = 'lighter';
+    drawDust(t);
+    drawBokeh(t);
+    ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = 'source-over';
+
+    if (running) requestAnimationFrame(render);
+  }
+
+  /* ---------------- 输入 ---------------- */
+  function onMove(cx, cy) {
+    mouse.x = cx;
+    mouse.y = cy;
+    mouse.nx = cx / Math.max(1, W);
+    mouse.ny = cy / Math.max(1, H);
+    targetCamX = (mouse.nx - 0.5) * 240;
+  }
+
+  window.addEventListener('mousemove', function (e) { onMove(e.clientX, e.clientY); }, { passive: true });
+  window.addEventListener('touchmove', function (e) {
+    if (e.touches[0]) onMove(e.touches[0].clientX, e.touches[0].clientY);
+  }, { passive: true });
+  window.addEventListener('mouseleave', function () { mouse.x = mouse.y = -9999; targetCamX = 0; });
+
+  var scrollTimer;
+  window.addEventListener('wheel', function (e) {
+    scrollVel = Math.min(60, scrollVel + Math.abs(e.deltaY) * 0.06);
+    clearTimeout(scrollTimer);
+    scrollTimer = setTimeout(function () { scrollVel = 0; }, 120);
+  }, { passive: true });
+
+  window.addEventListener('resize', function () {
+    resize();
+  });
+
+  /* Hero 离开视口后暂停渲染，省电 */
+  var heroEl = document.querySelector('.hero');
+  if ('IntersectionObserver' in window && heroEl) {
+    new IntersectionObserver(function (entries) {
+      var visible = entries[0].isIntersecting;
+      if (visible && !running) { running = true; lastT = 0; requestAnimationFrame(render); }
+      if (!visible) running = false;
+    }, { threshold: 0.02 }).observe(heroEl);
+  }
+
+  resize();
+  render(0);
+
+  /* ================= 界面 ================= */
+  var loader = document.getElementById('loader');
+  var ui = document.getElementById('ui');
+  var header = document.getElementById('header');
+
+  var revealed = false;
+  function revealUI() {
+    if (revealed) return;
+    revealed = true;
+    loader.classList.add('gone');
+    setTimeout(function () { ui.classList.add('on'); }, 260);
+  }
+
+  if (document.readyState === 'complete') {
+    setTimeout(revealUI, 450);
+  } else {
+    window.addEventListener('load', function () { setTimeout(revealUI, 450); });
+  }
+  setTimeout(revealUI, 2200); // 兜底，避免字体请求阻塞把页面卡在黑屏
+
+  // 滚动：顶栏状态
+  var corner = document.querySelector('.corner');
+  window.addEventListener('scroll', function () {
+    var y = window.scrollY;
+    header.classList.toggle('scrolled', y > 40);
+    if (corner) corner.classList.toggle('off', y > window.innerHeight * 0.6);
+  }, { passive: true });
+
+  // 入场
+  var revealEls = document.querySelectorAll('.reveal');
+  if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); }
+      });
+    }, { rootMargin: '0px 0px -12% 0px', threshold: 0.08 });
+    revealEls.forEach(function (el) { io.observe(el); });
+  } else {
+    revealEls.forEach(function (el) { el.classList.add('in'); });
+  }
+
+  /* ================= 环境音 ================= */
+  var soundBtn = document.getElementById('sound');
+  var actx = null, master = null, filter = null, started = false, playing = false;
+
+  function initAudio() {
+    if (started) return true;
+    var AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return false;
+    actx = new AC();
+    master = actx.createGain();
+    master.gain.value = 0;
+    filter = actx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = 620;
+    filter.Q.value = 0.6;
+    filter.connect(master);
+    master.connect(actx.destination);
+
+    [98, 146.83, 196, 293.66].forEach(function (f, i) {
+      var o = actx.createOscillator();
+      o.type = i % 2 ? 'sine' : 'triangle';
+      o.frequency.value = f;
+      var g = actx.createGain();
+      g.gain.value = 0.14 / (i + 1);
+      o.connect(g);
+      g.connect(filter);
+      o.start();
+
+      var lfo = actx.createOscillator();
+      lfo.frequency.value = 0.03 + i * 0.017;
+      var lg = actx.createGain();
+      lg.gain.value = 0.09 / (i + 1);
+      lfo.connect(lg);
+      lg.connect(g.gain);
+      lfo.start();
+    });
+
+    started = true;
+    return true;
+  }
+
+  soundBtn.addEventListener('click', function () {
+    if (!initAudio()) return;
+    if (actx.state === 'suspended') actx.resume();
+    playing = !playing;
+    var now = actx.currentTime;
+    master.gain.cancelScheduledValues(now);
+    master.gain.linearRampToValueAtTime(playing ? 0.09 : 0, now + (playing ? 2.2 : 1.2));
+    if (playing) filter.frequency.linearRampToValueAtTime(900, now + 2.5);
+    else filter.frequency.linearRampToValueAtTime(620, now + 1.2);
+    soundBtn.setAttribute('aria-pressed', String(playing));
+  });
+
+  /* 悬停圆形按钮：稍微拉近镜头 */
+  var go = document.getElementById('go');
+  if (go) {
+    go.addEventListener('pointerenter', function () { targetCamX *= 1.25; });
+  }
+})();
+</script>
+</body>
+</html>
