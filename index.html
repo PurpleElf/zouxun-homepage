@@ -90,11 +90,12 @@ h1 span{display:inline-block}
 .cap{
   margin-top:calc(34*var(--u));font-size:calc(18*var(--u));line-height:1.8;
   color:rgba(245,239,226,.8);max-width:26em;
+  text-shadow:0 1px 26px rgba(2,4,3,.92),0 0 14px rgba(2,4,3,.75);
 }
 .cap b{font-weight:500;color:var(--cream)}
 .hero::before{
   content:"";position:absolute;inset:-10% -5%;
-  background:radial-gradient(ellipse 62% 52% at 50% 44%,rgba(3,5,4,.72) 0%,rgba(3,5,4,.42) 44%,rgba(3,5,4,0) 72%);
+  background:radial-gradient(ellipse 68% 58% at 50% 42%,rgba(3,5,4,.88) 0%,rgba(3,5,4,.68) 40%,rgba(3,5,4,.26) 66%,rgba(3,5,4,0) 84%);
   pointer-events:none;z-index:-1;
 }
 .go{
@@ -177,6 +178,7 @@ h2{font-size:clamp(28px,3.1vw,40px);line-height:1.32;font-weight:600;letter-spac
   transition:border-color .4s,background .4s,transform .4s;
 }
 .project:hover{border-color:rgba(245,239,226,.22);background:linear-gradient(180deg,rgba(245,239,226,.06),rgba(245,239,226,.015));transform:translateY(-2px)}
+.project,.skill{transform-style:preserve-3d;will-change:transform;transition:border-color .4s,background .4s,transform .16s ease-out}
 .p-head{display:flex;align-items:baseline;gap:18px;flex-wrap:wrap;margin-bottom:14px}
 .p-index{font-family:Antonio,sans-serif;font-size:13px;letter-spacing:.12em;color:rgba(245,239,226,.38)}
 .p-title{font-size:clamp(19px,2vw,25px);font-weight:600;line-height:1.4;letter-spacing:-.01em}
@@ -238,6 +240,12 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--cream);outline-offs
   nav a.hide-sm{display:none}
   .pill{height:38px;padding:0 16px;font-size:12px}
   .hero{padding:120px 22px 80px}
+  .hero::before{
+    background:radial-gradient(ellipse 96% 48% at 50% 46%,rgba(3,5,4,.9) 0%,rgba(3,5,4,.72) 46%,rgba(3,5,4,.24) 74%,rgba(3,5,4,0) 92%);
+  }
+  .hero::before{
+    background:radial-gradient(ellipse 96% 48% at 50% 46%,rgba(3,5,4,.9) 0%,rgba(3,5,4,.72) 46%,rgba(3,5,4,.24) 74%,rgba(3,5,4,0) 92%);
+  }
   h1{font-size:clamp(64px,19vw,104px);letter-spacing:.02em}
   .eyebrow{font-size:10px;letter-spacing:.3em}
   .cap{font-size:15px;margin-top:26px;line-height:1.85}
@@ -262,7 +270,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--cream);outline-offs
 </head>
 <body>
 
-<div id="valley" aria-hidden="true"><canvas></canvas></div>
+<div id="valley" aria-hidden="true"></div>
 <div class="vignette" id="vignette"></div>
 <div class="grain"></div>
 
@@ -518,392 +526,12 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--cream);outline-offs
 
 <div class="loader" id="loader"><span></span></div>
 
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}
+</script>
 <script>
 (function () {
   'use strict';
-
-  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  /* ================= 夜之花谷 ================= */
-  var canvas = document.querySelector('#valley canvas');
-  var ctx = canvas.getContext('2d', { alpha: false });
-  var W = 0, H = 0, DPR = 1;
-  var F = 900;              // 焦距
-  var CAM_Y = 54;           // 相机离地高度
-  var RANGE = 7600;         // 可视深度
-  var NEAR = 140;           // 最近回收距离
-
-  var flowers = [], leaves = [], dust = [], bokeh = [];
-  var camZ = 0, camX = 0, targetCamX = 0;
-  var mouse = { x: -9999, y: -9999, nx: 0.5, ny: 0.5 };
-  var scrollVel = 0;
-  var running = true;
-  var lastT = 0;
-
-  var PALETTES = [
-    ['#ffffff', '#c9f0ff', '#2b6f8a'],  // 冰蓝
-    ['#ffffff', '#d8ffe9', '#2f7a5a'],  // 薄荷
-    ['#ffffff', '#ffd9ea', '#7a3b58'],  // 夜粉
-    ['#fdfbf4', '#fff0c4', '#7a6230']   // 暖白
-  ];
-
-  function makeSprite(mid, outer) {
-    var s = 96, c = document.createElement('canvas');
-    c.width = c.height = s;
-    var g = c.getContext('2d');
-    var grad = g.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2);
-    grad.addColorStop(0, 'rgba(255,255,255,1)');
-    grad.addColorStop(0.16, mid);
-    grad.addColorStop(0.4, outer);
-    grad.addColorStop(1, 'rgba(0,0,0,0)');
-    g.fillStyle = grad;
-    g.fillRect(0, 0, s, s);
-    return c;
-  }
-  var sprites = PALETTES.map(function (p) { return makeSprite(p[1], p[2]); });
-  var leafSprite = (function () {
-    var s = 64, c = document.createElement('canvas');
-    c.width = c.height = s;
-    var g = c.getContext('2d');
-    var grad = g.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2);
-    grad.addColorStop(0, 'rgba(220,255,235,.95)');
-    grad.addColorStop(0.35, 'rgba(90,170,135,.55)');
-    grad.addColorStop(1, 'rgba(0,0,0,0)');
-    g.fillStyle = grad;
-    g.fillRect(0, 0, s, s);
-    return c;
-  })();
-
-  function rand(a, b) { return a + Math.random() * (b - a); }
-
-  function makeFlower() {
-    var z = NEAR + Math.pow(Math.random(), 1.32) * RANGE;
-    var side = Math.random() < 0.5 ? -1 : 1;
-    // 中间留一条隐约的路径，两侧更密
-    var spread = Math.pow(Math.random(), 0.7) * (z * 0.52 + 90);
-    return {
-      x: side * spread + side * 40,
-      y: rand(2, 46),
-      z: z,
-      r: rand(3.2, 10.5),
-      p: Math.floor(Math.random() * sprites.length),
-      phase: rand(0, Math.PI * 2),
-      sway: rand(4, 18)
-    };
-  }
-
-  /* 前景虚焦光斑：贴着镜头，制造景深与包围感 */
-  function makeBokeh() {
-    return {
-      x: rand(-1, 1),
-      y: rand(0.42, 1.05),
-      z: rand(48, 190),
-      r: rand(14, 42),
-      p: Math.floor(Math.random() * sprites.length),
-      phase: rand(0, Math.PI * 2),
-      drift: rand(6, 20)
-    };
-  }
-
-  function makeLeaf() {
-    var z = rand(1400, RANGE + 900);
-    return {
-      x: rand(-1, 1) * (z * 0.9 + 400),
-      y: rand(-30, 10),
-      z: z,
-      r: rand(2.2, 6),
-      phase: rand(0, Math.PI * 2),
-      sway: rand(2, 9)
-    };
-  }
-
-  function buildField() {
-    var mobile = W < 820;
-    var nf = mobile ? 900 : 1750;
-    var nl = mobile ? 900 : 1500;
-    var nd = mobile ? 46 : 90;
-    var nb = mobile ? 12 : 18;
-    flowers = []; leaves = []; dust = []; bokeh = [];
-    for (var i = 0; i < nf; i++) flowers.push(makeFlower());
-    for (var j = 0; j < nl; j++) leaves.push(makeLeaf());
-    for (var b = 0; b < nb; b++) bokeh.push(makeBokeh());
-    for (var k = 0; k < nd; k++) {
-      dust.push({ x: Math.random(), y: Math.random(), z: rand(0, RANGE), s: rand(0.5, 1.9), ph: rand(0, 6.28) });
-    }
-  }
-
-  function resize() {
-    DPR = Math.min(window.devicePixelRatio || 1, 2);
-    W = window.innerWidth;
-    H = window.innerHeight;
-    canvas.width = Math.floor(W * DPR);
-    canvas.height = Math.floor(H * DPR);
-    canvas.style.width = W + 'px';
-    canvas.style.height = H + 'px';
-    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-    F = Math.max(620, H * 0.98);
-    buildField();
-  }
-
-  /* 背景天空与地平线辉光 */
-  function paintSky(horizon) {
-    var sky = ctx.createLinearGradient(0, 0, 0, H);
-    sky.addColorStop(0, '#040605');
-    sky.addColorStop(0.42, '#050a09');
-    sky.addColorStop(1, '#030504');
-    ctx.fillStyle = sky;
-    ctx.fillRect(0, 0, W, H);
-
-    ctx.globalCompositeOperation = 'lighter';
-    var glow = ctx.createRadialGradient(W * 0.5, horizon, 0, W * 0.5, horizon, Math.max(W, H) * 0.62);
-    glow.addColorStop(0, 'rgba(70,150,130,.20)');
-    glow.addColorStop(0.35, 'rgba(40,90,90,.09)');
-    glow.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.fillStyle = glow;
-    ctx.fillRect(0, 0, W, H);
-    ctx.globalCompositeOperation = 'source-over';
-  }
-
-  /* 光束 */
-  function paintRays(t, horizon) {
-    ctx.save();
-    ctx.globalCompositeOperation = 'lighter';
-    ctx.translate(W * 0.5, horizon * 0.92);
-    for (var i = 0; i < 4; i++) {
-      var a = -0.5 + i * 0.34 + Math.sin(t * 0.00006 + i) * 0.05;
-      ctx.save();
-      ctx.rotate(a);
-      var g = ctx.createLinearGradient(0, 0, 0, -H * 0.95);
-      g.addColorStop(0, 'rgba(180,255,235,.022)');
-      g.addColorStop(1, 'rgba(180,255,235,0)');
-      ctx.fillStyle = g;
-      ctx.beginPath();
-      ctx.moveTo(-W * 0.012, 0);
-      ctx.lineTo(-W * 0.11, -H * 0.95);
-      ctx.lineTo(W * 0.06, -H * 0.95);
-      ctx.closePath();
-      ctx.fill();
-      ctx.restore();
-    }
-    ctx.restore();
-  }
-
-  function project(z, x, y, horizon) {
-    var s = F / z;
-    return { s: s, x: W * 0.5 + (x - camX) * s, y: horizon + (CAM_Y - y) * s };
-  }
-
-  function drawLeaves(t, horizon) {
-    for (var i = 0; i < leaves.length; i++) {
-      var o = leaves[i];
-      var dz = o.z - camZ;
-      if (dz < NEAR) { o.z += RANGE + 900 - NEAR; dz = o.z - camZ; }
-      if (dz > RANGE + 900) continue;
-
-      var s = F / dz;
-      var sway = Math.sin(t * 0.0007 + o.phase) * o.sway;
-      var sx = W * 0.5 + (o.x + sway - camX) * s;
-      var sy = horizon + (CAM_Y - o.y) * s;
-      var r = o.r * s;
-      if (r < 0.15 || sx < -60 || sx > W + 60 || sy < -60 || sy > H + 60) continue;
-
-      var fog = 1 - dz / (RANGE + 900);
-      var a = Math.max(0, fog) * 0.34;
-      var d = (sx - mouse.x) * (sx - mouse.x) + (sy - mouse.y) * (sy - mouse.y);
-      if (d < 26000) {
-        var dist = Math.sqrt(d) || 1;
-        var push = (1 - dist / 161) * 14;
-        sx += (sx - mouse.x) / dist * push;
-        sy += (sy - mouse.y) / dist * push;
-        a += 0.12 * (1 - dist / 161);
-      }
-      ctx.globalAlpha = a;
-      ctx.drawImage(leafSprite, sx - r, sy - r, r * 2, r * 2);
-    }
-  }
-
-  function drawFlowers(t, horizon) {
-    var mr = Math.min(W, H) * 0.3;
-    for (var i = 0; i < flowers.length; i++) {
-      var o = flowers[i];
-      var dz = o.z - camZ;
-      if (dz < NEAR) { o.z += RANGE - NEAR; dz = o.z - camZ; }
-      if (dz > RANGE) continue;
-
-      var s = F / dz;
-      var sway = Math.sin(t * 0.00085 + o.phase) * o.sway;
-      var bob = Math.cos(t * 0.0011 + o.phase) * 2.2;
-      var baseY = horizon + CAM_Y * s;
-      var sx = W * 0.5 + (o.x + sway - camX) * s;
-      var sy = horizon + (CAM_Y - o.y - bob) * s;
-
-      var near = 1 - dz / RANGE;
-
-      // 茎：只有近处的花才画，远处理应糊成一片
-      if (dz < 1700 && s > 0.12) {
-        ctx.globalAlpha = Math.pow(near, 1.6) * 0.085;
-        ctx.strokeStyle = 'rgba(160,225,195,1)';
-        ctx.lineWidth = Math.max(0.5, s * 0.3);
-        ctx.beginPath();
-        ctx.moveTo(sx, Math.min(sy + (baseY - sy) * 0.55, H + 40));
-        ctx.lineTo(sx, sy);
-        ctx.stroke();
-      }
-
-      var r = o.r * s * (0.34 + 0.76 * Math.min(1, near * 1.45));
-      if (r < 0.22 || sx < -80 || sx > W + 80 || sy < -80 || sy > H + 80) continue;
-
-      var a = Math.pow(Math.max(0, near), 0.5) * 1;
-
-      // 鼠标推开 + 靠近鼠标发亮
-      var dx = sx - mouse.x, dy = sy - mouse.y;
-      var d2 = dx * dx + dy * dy;
-      var glow = 0;
-      if (d2 < mr * mr) {
-        var dist = Math.sqrt(d2) || 1;
-        var k = 1 - dist / mr;
-        var push = k * k * 78;
-        sx += dx / dist * push;
-        sy += dy / dist * push;
-        glow = k * 0.85;
-        a = Math.min(1, a + glow * 0.55);
-      }
-
-      ctx.globalAlpha = a;
-      var rr = r * (1 + glow * 0.85);
-      ctx.drawImage(sprites[o.p], sx - rr, sy - rr, rr * 2, rr * 2);
-    }
-  }
-
-  /* 地平线雾带：把远处的花压进雾里，拉开纵深 */
-  /* 前景虚焦光斑：贴近镜头，撑住画面下缘 */
-  function drawBokeh(t) {
-    ctx.globalCompositeOperation = 'lighter';
-    for (var i = 0; i < bokeh.length; i++) {
-      var o = bokeh[i];
-      var px = (o.x * 0.5 + 0.5) * W + Math.sin(t * 0.00035 + o.phase) * o.drift + (camX * 0.22);
-      var py = o.y * H + Math.cos(t * 0.00045 + o.phase) * (o.drift * 0.6);
-      var pulse = 1 + Math.sin(t * 0.0006 + o.phase) * 0.06;
-      var rr = o.r * pulse;
-      ctx.globalAlpha = 0.06 + 0.045 * (1 - o.z / 190);
-      ctx.drawImage(sprites[o.p], px - rr, py - rr, rr * 2, rr * 2);
-    }
-    ctx.globalAlpha = 1;
-  }
-
-  function paintMist(horizon) {
-    var top = horizon - 26;
-    var g = ctx.createLinearGradient(0, top, 0, top + 190);
-    g.addColorStop(0, 'rgba(5,12,10,.85)');
-    g.addColorStop(0.45, 'rgba(5,12,10,.38)');
-    g.addColorStop(1, 'rgba(5,12,10,0)');
-    ctx.globalCompositeOperation = 'source-over';
-    ctx.globalAlpha = 1;
-    ctx.fillStyle = g;
-    ctx.fillRect(0, top, W, 190);
-
-    // 画面下缘的地气：让近景不至于落进死黑
-    var gb = ctx.createLinearGradient(0, H, 0, H * 0.58);
-    gb.addColorStop(0, 'rgba(26,58,48,.5)');
-    gb.addColorStop(0.55, 'rgba(14,32,27,.22)');
-    gb.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.globalCompositeOperation = 'lighter';
-    ctx.fillStyle = gb;
-    ctx.fillRect(0, H * 0.58, W, H * 0.42);
-
-    ctx.globalCompositeOperation = 'lighter';
-  }
-
-  function drawDust(t) {
-    ctx.fillStyle = '#eaf7f0';
-    for (var i = 0; i < dust.length; i++) {
-      var p = dust[i];
-      p.z -= 18 * 0.016;
-      if (p.z < 200) p.z += RANGE;
-      var s = F / p.z;
-      var x = p.x * W + Math.sin(t * 0.0004 + p.ph) * 14;
-      var y = p.y * H + Math.cos(t * 0.0005 + p.ph) * 12;
-      var a = 0.05 + 0.16 * (1 - p.z / RANGE);
-      ctx.globalAlpha = a;
-      var size = p.s * (0.6 + s * 0.02);
-      ctx.fillRect(x, y, size, size);
-    }
-  }
-
-  function render(t) {
-    if (!W) { resize(); }
-
-    var dt = lastT ? Math.min(0.05, (t - lastT) / 1000) : 0.016;
-    lastT = t;
-
-    var horizon = H * 0.455 + Math.sin(t * 0.00018) * 3;
-
-    if (!reduceMotion) {
-      var boost = Math.min(1, Math.abs(scrollVel) * 0.055);
-      var speed = 34 + boost * 150;
-      camZ += speed * dt;
-      camX += (targetCamX - camX) * Math.min(1, dt * 2.4);
-
-      // 速度越快，暗角越紧
-      var vig = document.getElementById('vignette');
-      if (vig) vig.style.opacity = String(0.9 + boost * 0.1);
-    }
-
-    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-    paintSky(horizon);
-    paintRays(t, horizon);
-
-    ctx.globalCompositeOperation = 'lighter';
-    drawLeaves(t, horizon);
-    drawFlowers(t, horizon);
-    paintMist(horizon);
-    ctx.globalCompositeOperation = 'lighter';
-    drawDust(t);
-    drawBokeh(t);
-    ctx.globalAlpha = 1;
-    ctx.globalCompositeOperation = 'source-over';
-
-    if (running) requestAnimationFrame(render);
-  }
-
-  /* ---------------- 输入 ---------------- */
-  function onMove(cx, cy) {
-    mouse.x = cx;
-    mouse.y = cy;
-    mouse.nx = cx / Math.max(1, W);
-    mouse.ny = cy / Math.max(1, H);
-    targetCamX = (mouse.nx - 0.5) * 240;
-  }
-
-  window.addEventListener('mousemove', function (e) { onMove(e.clientX, e.clientY); }, { passive: true });
-  window.addEventListener('touchmove', function (e) {
-    if (e.touches[0]) onMove(e.touches[0].clientX, e.touches[0].clientY);
-  }, { passive: true });
-  window.addEventListener('mouseleave', function () { mouse.x = mouse.y = -9999; targetCamX = 0; });
-
-  var scrollTimer;
-  window.addEventListener('wheel', function (e) {
-    scrollVel = Math.min(60, scrollVel + Math.abs(e.deltaY) * 0.06);
-    clearTimeout(scrollTimer);
-    scrollTimer = setTimeout(function () { scrollVel = 0; }, 120);
-  }, { passive: true });
-
-  window.addEventListener('resize', function () {
-    resize();
-  });
-
-  /* Hero 离开视口后暂停渲染，省电 */
-  var heroEl = document.querySelector('.hero');
-  if ('IntersectionObserver' in window && heroEl) {
-    new IntersectionObserver(function (entries) {
-      var visible = entries[0].isIntersecting;
-      if (visible && !running) { running = true; lastT = 0; requestAnimationFrame(render); }
-      if (!visible) running = false;
-    }, { threshold: 0.02 }).observe(heroEl);
-  }
-
-  resize();
-  render(0);
 
   /* ================= 界面 ================= */
   var loader = document.getElementById('loader');
@@ -918,14 +546,17 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--cream);outline-offs
     setTimeout(function () { ui.classList.add('on'); }, 260);
   }
 
+  // 3D 场景首帧渲染完成后触发
+  window.addEventListener('zx-ready', function () { setTimeout(revealUI, 150); });
+  // 兜底：脚本/CDN 失败也不能卡在黑屏
   if (document.readyState === 'complete') {
-    setTimeout(revealUI, 450);
+    setTimeout(revealUI, 1200);
   } else {
-    window.addEventListener('load', function () { setTimeout(revealUI, 450); });
+    window.addEventListener('load', function () { setTimeout(revealUI, 1200); });
   }
-  setTimeout(revealUI, 2200); // 兜底，避免字体请求阻塞把页面卡在黑屏
+  setTimeout(revealUI, 4000);
 
-  // 滚动：顶栏状态
+  // 滚动：顶栏状态 + 右下角提示淡出
   var corner = document.querySelector('.corner');
   window.addEventListener('scroll', function () {
     var y = window.scrollY;
@@ -933,7 +564,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--cream);outline-offs
     if (corner) corner.classList.toggle('off', y > window.innerHeight * 0.6);
   }, { passive: true });
 
-  // 入场
+  // 内容入场
   var revealEls = document.querySelectorAll('.reveal');
   if ('IntersectionObserver' in window) {
     var io = new IntersectionObserver(function (entries) {
@@ -944,6 +575,20 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--cream);outline-offs
     revealEls.forEach(function (el) { io.observe(el); });
   } else {
     revealEls.forEach(function (el) { el.classList.add('in'); });
+  }
+
+  // 卡片随鼠标轻微倾斜，强化“3D”手感
+  if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && matchMedia('(hover:hover)').matches) {
+    document.querySelectorAll('.project, .skill').forEach(function (el) {
+      el.addEventListener('pointermove', function (e) {
+        var r = el.getBoundingClientRect();
+        var px = (e.clientX - r.left) / r.width - 0.5;
+        var py = (e.clientY - r.top) / r.height - 0.5;
+        el.style.transform = 'perspective(1200px) rotateX(' + (-py * 2.2).toFixed(2) +
+          'deg) rotateY(' + (px * 2.2).toFixed(2) + 'deg) translateY(-2px)';
+      });
+      el.addEventListener('pointerleave', function () { el.style.transform = ''; });
+    });
   }
 
   /* ================= 环境音 ================= */
@@ -998,13 +643,395 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--cream);outline-offs
     else filter.frequency.linearRampToValueAtTime(620, now + 1.2);
     soundBtn.setAttribute('aria-pressed', String(playing));
   });
-
-  /* 悬停圆形按钮：稍微拉近镜头 */
-  var go = document.getElementById('go');
-  if (go) {
-    go.addEventListener('pointerenter', function () { targetCamX *= 1.25; });
-  }
 })();
 </script>
+
+<script type="module">
+import * as THREE from 'three';
+
+(function () {
+  const container = document.getElementById('valley');
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---------- WebGL 兜底 ---------- */
+  let renderer = null;
+  try {
+    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'high-performance' });
+    if (!renderer.getContext()) throw new Error('no webgl');
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  } catch (e) {
+    container.style.background =
+      'radial-gradient(ellipse 70% 46% at 50% 58%, rgba(46,110,92,.32) 0%, rgba(24,58,52,.16) 45%, rgba(3,5,4,0) 75%), #030504';
+    window.dispatchEvent(new Event('zx-ready'));
+    return;
+  }
+  renderer.domElement.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;display:block';
+  container.appendChild(renderer.domElement);
+
+  /* ---------- 场景 ---------- */
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x030504);
+  const FOG_D = 0.0076;
+  scene.fog = new THREE.FogExp2(0x020404, FOG_D);
+
+  const camera = new THREE.PerspectiveCamera(62, window.innerWidth / window.innerHeight, 0.1, 500);
+  camera.position.set(0, 2.7, 0);
+  scene.add(camera);
+
+  const isMobile = window.innerWidth < 820;
+  const DEPTH = 230;        // 花海纵深（世界单位）
+  const NEAR_GAP = 2.2;     // 相机前方回收距离
+
+  /* ---------- 共享着色器（点精灵花/叶/尘） ---------- */
+  const VERT = `
+    uniform float uTime;
+    uniform vec2 uMouse;
+    uniform float uAspect;
+    uniform float uPushRadius;
+    uniform float uPushStrength;
+    uniform float uSize;
+    uniform float uMaxSize;
+    uniform float uPixelRatio;
+    uniform float uFogDensity;
+    attribute float aScale;
+    attribute vec3 aColor;
+    attribute float aPhase;
+    attribute float aAlpha;
+    varying vec3 vColor;
+    varying float vAlpha;
+    varying float vGlow;
+    varying float vPhase;
+    void main() {
+      vec3 p = position;
+      // 摇曳
+      p.x += sin(uTime * 0.7 + aPhase) * 0.18;
+      p.y += cos(uTime * 0.9 + aPhase * 1.7) * 0.09;
+
+      vec4 mv = modelViewMatrix * vec4(p, 1.0);
+      vec4 clip = projectionMatrix * mv;
+
+      // 屏幕空间：鼠标推开 + 靠近发亮
+      vec2 ndc = clip.xy / max(0.0001, clip.w);
+      vec2 dm = ndc - uMouse;
+      dm.x *= uAspect;
+      float dist = length(dm);
+      float k = smoothstep(uPushRadius, 0.0, dist);
+      vec2 push = (dm / max(0.0001, dist)) * k * k * uPushStrength;
+      clip.xy += push * clip.w;
+      vGlow = k;
+      vPhase = aPhase;
+
+      // 深度雾
+      float dcam = length(mv.xyz);
+      float fog = exp(-uFogDensity * uFogDensity * dcam * dcam);
+      vAlpha = aAlpha * fog;
+      vColor = aColor;
+
+      float size = uSize * aScale * uPixelRatio * (240.0 / max(0.1, -mv.z));
+      gl_PointSize = clamp(size, 1.0, uMaxSize * uPixelRatio);
+      gl_Position = clip;
+    }
+  `;
+  const FRAG = `
+    varying vec3 vColor;
+    varying float vAlpha;
+    varying float vGlow;
+    varying float vPhase;
+    void main() {
+      vec2 uv = gl_PointCoord * 2.0 - 1.0;
+      float r = length(uv);
+      if (r > 1.0) discard;
+      float ang = atan(uv.y, uv.x);
+      float petals = 0.72 + 0.28 * cos(ang * 5.0 + vPhase * 2.0);
+      float core = smoothstep(0.42, 0.0, r);
+      float halo = exp(-r * 2.8) * (0.45 + 0.55 * petals);
+      float a = (core * 0.85 + halo * 0.5) * (1.0 + vGlow * 1.35);
+      a *= smoothstep(1.0, 0.55, r);
+      gl_FragColor = vec4(vColor * (1.0 + vGlow * 1.5), a * vAlpha);
+    }
+  `;
+
+  function makeMat(opts) {
+    return new THREE.ShaderMaterial({
+      uniforms: {
+        uTime: { value: 0 },
+        uMouse: { value: new THREE.Vector2(10, 10) },
+        uAspect: { value: window.innerWidth / window.innerHeight },
+        uPushRadius: { value: opts.pushRadius },
+        uPushStrength: { value: opts.pushStrength },
+        uSize: { value: opts.size },
+        uMaxSize: { value: opts.maxSize },
+        uPixelRatio: { value: renderer.getPixelRatio() },
+        uFogDensity: { value: opts.fog === undefined ? FOG_D : opts.fog }
+      },
+      vertexShader: VERT,
+      fragmentShader: FRAG,
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending
+    });
+  }
+
+  /* ---------- 花海 ---------- */
+  const PALETTE = [
+    [0.55, 0.95, 0.78],  // 薄荷青
+    [0.62, 0.85, 1.00],  // 冰蓝
+    [1.00, 0.74, 0.84],  // 夜粉
+    [1.00, 0.95, 0.80],  // 暖白
+    [0.93, 0.99, 0.96]   // 月白
+  ];
+
+  function spawnFlower(arr, i, dMin, dMax) {
+    const side = Math.random() < 0.5 ? -1 : 1;
+    const d = dMin + Math.pow(Math.random(), 1.7) * (dMax - dMin);
+    // 中间留一条隐约的路径，两侧越远越宽
+    const x = side * (0.9 + Math.pow(Math.random(), 0.72) * d * 0.29 + Math.random() * 0.9);
+    const y = 0.15 + Math.pow(Math.random(), 2) * 1.05;
+    arr[i * 3] = x;
+    arr[i * 3 + 1] = y;
+    arr[i * 3 + 2] = camera.position.z - d;
+  }
+
+  function buildCloud(count, spawn, color, scaleMin, scaleMax, alpha) {
+    const geo = new THREE.BufferGeometry();
+    const pos = new Float32Array(count * 3);
+    const col = new Float32Array(count * 3);
+    const scl = new Float32Array(count);
+    const ph = new Float32Array(count);
+    const al = new Float32Array(count);
+    for (let i = 0; i < count; i++) {
+      spawn(pos, i, 3, DEPTH);
+      col[i * 3] = color[0] * (0.85 + Math.random() * 0.3);
+      col[i * 3 + 1] = color[1] * (0.85 + Math.random() * 0.3);
+      col[i * 3 + 2] = color[2] * (0.85 + Math.random() * 0.3);
+      scl[i] = scaleMin + Math.pow(Math.random(), 1.6) * (scaleMax - scaleMin);
+      ph[i] = Math.random() * 6.283;
+      al[i] = alpha * (0.55 + Math.random() * 0.45);
+    }
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    geo.setAttribute('aColor', new THREE.BufferAttribute(col, 3));
+    geo.setAttribute('aScale', new THREE.BufferAttribute(scl, 1));
+    geo.setAttribute('aPhase', new THREE.BufferAttribute(ph, 1));
+    geo.setAttribute('aAlpha', new THREE.BufferAttribute(al, 1));
+    geo.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, 0, 0), 1e5);
+    return geo;
+  }
+
+  function recycle(geo, spawn, dMin, dMax) {
+    const arr = geo.attributes.position.array;
+    const n = arr.length / 3;
+    const camZ = camera.position.z;
+    let dirty = false;
+    for (let i = 0; i < n; i++) {
+      if (arr[i * 3 + 2] > camZ - NEAR_GAP) {
+        spawn(arr, i, dMin, dMax);
+        dirty = true;
+      }
+    }
+    if (dirty) geo.attributes.position.needsUpdate = true;
+  }
+
+  // 花（主层）
+  const nFlower = isMobile ? 2600 : 5200;
+  const flowerGeo = buildCloud(
+    nFlower,
+    (a, i, d0, d1) => spawnFlower(a, i, d0, d1),
+    [0, 0, 0],
+    0.6, 2.0, 1.0
+  );
+  // 花的颜色在构建后随机化（调色板挑选 + 明度抖动）
+  {
+    const c = flowerGeo.attributes.aColor.array;
+    const P = PALETTE;
+    for (let i = 0; i < nFlower; i++) {
+      const pc = P[(Math.random() * P.length) | 0];
+      const tint = 0.85 + Math.random() * 0.3;
+      c[i * 3] = pc[0] * tint;
+      c[i * 3 + 1] = pc[1] * tint;
+      c[i * 3 + 2] = pc[2] * tint;
+    }
+    flowerGeo.attributes.aColor.needsUpdate = true;
+  }
+  const flowerMat = makeMat({ pushRadius: 0.34, pushStrength: 0.16, size: 0.95, maxSize: 122 });
+  const flowers = new THREE.Points(flowerGeo, flowerMat);
+  flowers.frustumCulled = false;
+  scene.add(flowers);
+
+  // 叶（暗层，铺环境）
+  const nLeaf = isMobile ? 1200 : 2400;
+  function spawnLeaf(a, i, d0, d1) {
+    const side = Math.random() < 0.5 ? -1 : 1;
+    const d = d0 + Math.random() * (d1 - d0);
+    a[i * 3] = side * (1.0 + Math.pow(Math.random(), 0.8) * d * 0.42);
+    a[i * 3 + 1] = 0.1 + Math.random() * 2.4;
+    a[i * 3 + 2] = camera.position.z - d;
+  }
+  const leafGeo = buildCloud(nLeaf, spawnLeaf, [0.24, 0.52, 0.38], 0.4, 1.1, 0.5);
+  const leafMat = makeMat({ pushRadius: 0.22, pushStrength: 0.06, size: 0.34, maxSize: 54 });
+  const leaves = new THREE.Points(leafGeo, leafMat);
+  leaves.frustumCulled = false;
+  scene.add(leaves);
+
+  // 尘（漂浮微粒）
+  const nDust = isMobile ? 150 : 300;
+  function spawnDust(a, i, d0, d1) {
+    const d = d0 + Math.random() * (d1 - d0);
+    a[i * 3] = (Math.random() * 2 - 1) * 34;
+    a[i * 3 + 1] = 0.3 + Math.random() * 6.5;
+    a[i * 3 + 2] = camera.position.z - d;
+  }
+  const dustGeo = buildCloud(nDust, spawnDust, [0.92, 0.98, 0.94], 0.16, 0.4, 0.5);
+  const dustMat = makeMat({ pushRadius: 0.18, pushStrength: 0.05, size: 0.16, maxSize: 12, fog: 0.004 });
+  const dust = new THREE.Points(dustGeo, dustMat);
+  dust.frustumCulled = false;
+  scene.add(dust);
+
+  // 地面（承接雾色，给镜头一个“谷底”）
+  const ground = new THREE.Mesh(
+    new THREE.PlaneGeometry(1800, 1800),
+    new THREE.MeshBasicMaterial({ color: 0x040705 })
+  );
+  ground.rotation.x = -Math.PI / 2;
+  scene.add(ground);
+
+  // 地平线辉光（贴着镜头的远景精灵）
+  function glowTexture(r, g, b) {
+    const s = 256, cv = document.createElement('canvas');
+    cv.width = cv.height = s;
+    const c2 = cv.getContext('2d');
+    const gr = c2.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2);
+    gr.addColorStop(0, 'rgba(' + r + ',' + g + ',' + b + ',0.55)');
+    gr.addColorStop(0.4, 'rgba(' + r + ',' + g + ',' + b + ',0.18)');
+    gr.addColorStop(1, 'rgba(0,0,0,0)');
+    c2.fillStyle = gr;
+    c2.fillRect(0, 0, s, s);
+    const tex = new THREE.CanvasTexture(cv);
+    return tex;
+  }
+  function addGlow(rgb, w, h, x, y, z, opacity) {
+    const spr = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: glowTexture(rgb[0], rgb[1], rgb[2]),
+      transparent: true, opacity: opacity,
+      blending: THREE.AdditiveBlending, depthWrite: false, depthTest: false
+    }));
+    spr.scale.set(w, h, 1);
+    spr.position.set(x, y, z);
+    camera.add(spr);
+    return spr;
+  }
+  addGlow([46, 120, 100], 210, 120, 0, -22, -130, 0.42);
+  addGlow([30, 90, 110], 150, 90, -34, -20, -125, 0.28);
+  addGlow([90, 60, 100], 140, 84, 40, -18, -118, 0.22);
+
+  // 前景虚焦光斑（挂在相机上的近景粒子）
+  const nBokeh = isMobile ? 7 : 12;
+  const bokehGeo = new THREE.BufferGeometry();
+  {
+    const pos = new Float32Array(nBokeh * 3);
+    const col = new Float32Array(nBokeh * 3);
+    const scl = new Float32Array(nBokeh);
+    const ph = new Float32Array(nBokeh);
+    const al = new Float32Array(nBokeh);
+    for (let i = 0; i < nBokeh; i++) {
+      const side = Math.random() < 0.5 ? -1 : 1;
+      pos[i * 3] = side * (3.3 + Math.random() * 5.2);
+      pos[i * 3 + 1] = -4.6 + Math.random() * 3.2;
+      pos[i * 3 + 2] = -(2.5 + Math.random() * 7);
+      const pc = PALETTE[(Math.random() * PALETTE.length) | 0];
+      col[i * 3] = pc[0]; col[i * 3 + 1] = pc[1]; col[i * 3 + 2] = pc[2];
+      scl[i] = 2.0 + Math.random() * 3.4;
+      ph[i] = Math.random() * 6.283;
+      al[i] = 0.028 + Math.random() * 0.032;
+    }
+    bokehGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    bokehGeo.setAttribute('aColor', new THREE.BufferAttribute(col, 3));
+    bokehGeo.setAttribute('aScale', new THREE.BufferAttribute(scl, 1));
+    bokehGeo.setAttribute('aPhase', new THREE.BufferAttribute(ph, 1));
+    bokehGeo.setAttribute('aAlpha', new THREE.BufferAttribute(al, 1));
+  }
+  const bokehMat = makeMat({ pushRadius: 0.0, pushStrength: 0.0, size: 0.52, maxSize: 190, fog: 0.0 });
+  const bokeh = new THREE.Points(bokehGeo, bokehMat);
+  bokeh.frustumCulled = false;
+  camera.add(bokeh);
+
+  /* ---------- 输入 ---------- */
+  const mouse = new THREE.Vector2(10, 10);
+  let mouseNX = 0.5;
+  function setMouse(cx, cy) {
+    mouse.set((cx / window.innerWidth) * 2 - 1, -(cy / window.innerHeight) * 2 + 1);
+    mouseNX = cx / Math.max(1, window.innerWidth);
+  }
+  window.addEventListener('mousemove', function (e) { setMouse(e.clientX, e.clientY); }, { passive: true });
+  window.addEventListener('touchmove', function (e) {
+    if (e.touches[0]) setMouse(e.touches[0].clientX, e.touches[0].clientY);
+  }, { passive: true });
+  window.addEventListener('mouseleave', function () { mouse.set(10, 10); mouseNX = 0.5; });
+
+  let boost = 0;
+  window.addEventListener('wheel', function (e) {
+    boost = Math.min(1.2, boost + Math.abs(e.deltaY) * 0.0018);
+  }, { passive: true });
+
+  window.addEventListener('resize', function () {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    [flowerMat, leafMat, dustMat, bokehMat].forEach(function (m) {
+      m.uniforms.uAspect.value = window.innerWidth / window.innerHeight;
+      m.uniforms.uPixelRatio.value = renderer.getPixelRatio();
+    });
+  });
+
+  /* ---------- 渲染循环 ---------- */
+  let lastT = 0, running = true, ready = false;
+  const vig = document.getElementById('vignette');
+
+  function tick(t) {
+    const dt = lastT ? Math.min(0.05, (t - lastT) / 1000) : 0.016;
+    lastT = t;
+
+    if (!reduceMotion) {
+      boost = Math.max(0, boost - dt * 1.4);
+      camera.position.z -= (6.5 + boost * 26) * dt;
+      camera.position.x += ((mouseNX - 0.5) * 4.2 - camera.position.x) * Math.min(1, dt * 2.2);
+      camera.rotation.y = (mouseNX - 0.5) * -0.06;
+      camera.rotation.z = (mouseNX - 0.5) * -0.02;
+      if (vig) vig.style.opacity = String(0.9 + Math.min(1, boost) * 0.1);
+    }
+
+    const time = reduceMotion ? 0 : t / 1000;
+    [flowerMat, leafMat, dustMat, bokehMat].forEach(function (m) {
+      m.uniforms.uTime.value = time;
+      m.uniforms.uMouse.value.copy(mouse);
+    });
+
+    recycle(flowerGeo, spawnFlower, 4, DEPTH);
+    recycle(leafGeo, spawnLeaf, 6, DEPTH + 30);
+    recycle(dustGeo, spawnDust, 4, DEPTH);
+
+    ground.position.z = camera.position.z - 300;
+
+    renderer.render(scene, camera);
+
+    if (!ready) { ready = true; window.dispatchEvent(new Event('zx-ready')); }
+    if (running) requestAnimationFrame(tick);
+  }
+
+  // Hero 离开视口后暂停渲染
+  const heroEl = document.querySelector('.hero');
+  if ('IntersectionObserver' in window && heroEl) {
+    new IntersectionObserver(function (entries) {
+      const visible = entries[0].isIntersecting;
+      if (visible && !running) { running = true; lastT = 0; requestAnimationFrame(tick); }
+      if (!visible) running = false;
+    }, { threshold: 0.02 }).observe(heroEl);
+  }
+
+  requestAnimationFrame(tick);
+})();
+</script>
+
 </body>
 </html>
