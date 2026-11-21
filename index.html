@@ -22,7 +22,7 @@
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
-html,body{background:var(--bg);max-width:100%}
+html,body{background:var(--bg);max-width:100%;overflow-x:hidden}
 body{
   color:var(--cream);
   font-family:Manrope,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;
@@ -81,12 +81,142 @@ nav a:not(.pill):hover{opacity:1}
   font-size:calc(11.5*var(--u));letter-spacing:.36em;text-transform:uppercase;
   color:rgba(245,239,226,.6);margin-bottom:calc(22*var(--u));font-weight:500;
 }
+.hero-head{position:relative;z-index:3}
 h1{
   font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",Antonio,sans-serif;
-  font-weight:600;font-size:clamp(76px,12.4vw,208px);line-height:.9;letter-spacing:.04em;
-  text-shadow:0 0 60px rgba(190,235,220,.2),0 0 140px rgba(160,220,255,.12);
+  font-weight:500;font-size:clamp(34px,3.6vw,50px);line-height:1.15;
+  letter-spacing:.34em;text-indent:.34em;
+  color:rgba(245,239,226,.95);
+  text-shadow:0 0 40px rgba(190,235,220,.2),0 0 120px rgba(160,220,255,.12);
 }
 h1 span{display:inline-block}
+.hero-sub{
+  margin-top:calc(10*var(--u));font-size:calc(13.5*var(--u));letter-spacing:.16em;
+  color:rgba(245,239,226,.5);text-shadow:0 1px 20px rgba(2,4,3,.9);
+}
+
+/* 人物舞台 */
+.stage{
+  position:relative;z-index:2;
+  width:min(1060px,94vw);
+  height:clamp(400px,58vh,620px);
+  margin-top:calc(12*var(--u));
+  display:flex;align-items:flex-end;justify-content:center;
+}
+.stage-glow{
+  position:absolute;left:50%;bottom:4%;width:min(520px,62vw);height:76%;
+  transform:translateX(-50%);pointer-events:none;z-index:0;
+  background:
+    radial-gradient(ellipse 55% 58% at 50% 54%,rgba(168,196,255,.22),rgba(168,196,255,0) 72%),
+    radial-gradient(ellipse 40% 34% at 50% 86%,rgba(143,227,196,.24),rgba(143,227,196,0) 74%);
+  filter:blur(34px);
+  animation:glowIn 2.6s ease both;
+}
+.figure{
+  position:relative;z-index:2;height:100%;width:auto;
+  filter:drop-shadow(0 14px 26px rgba(0,0,0,.6)) drop-shadow(0 0 26px rgba(150,190,255,.16));
+  animation:figureIn 1.5s cubic-bezier(.2,.7,.2,1) both;
+}
+.figure-ground{
+  position:absolute;left:50%;bottom:-6px;z-index:1;
+  width:min(300px,26vw);height:46px;transform:translateX(-50%);
+  background:radial-gradient(ellipse at 50% 50%,rgba(0,0,0,.82),rgba(0,0,0,.38) 46%,transparent 74%);
+  filter:blur(11px);
+}
+@keyframes figureIn{
+  from{opacity:0;transform:translateY(34px) scale(.97);filter:brightness(.4) blur(8px)}
+  to{opacity:1;transform:none;filter:drop-shadow(0 14px 26px rgba(0,0,0,.6)) drop-shadow(0 0 26px rgba(150,190,255,.16)) blur(0)}
+}
+@keyframes glowIn{from{opacity:0}to{opacity:1}}
+
+/* 花瓣微尘 */
+.petals{position:absolute;inset:0;z-index:1;pointer-events:none}
+.petals i{
+  position:absolute;width:6px;height:6px;border-radius:60% 40% 55% 45%;
+  background:#f2c8d4;opacity:0;filter:blur(.3px);
+  animation:petalDrift var(--pd,16s) linear infinite var(--pd2,0s);
+}
+.petals i:nth-child(1){left:22%;top:30%;--pd:15s;--pd2:0s;background:#f2c8d4}
+.petals i:nth-child(2){left:31%;top:58%;--pd:18s;--pd2:-4s;background:#bdebd6;width:5px;height:5px}
+.petals i:nth-child(3){left:40%;top:16%;--pd:13s;--pd2:-7s;background:#f6e0b0;width:4px;height:4px}
+.petals i:nth-child(4){left:58%;top:24%;--pd:17s;--pd2:-2s;background:#c9c6f5;width:5px;height:5px}
+.petals i:nth-child(5){left:67%;top:52%;--pd:16s;--pd2:-9s;background:#f2c8d4}
+.petals i:nth-child(6){left:74%;top:38%;--pd:19s;--pd2:-5s;background:#b9e2f5;width:4px;height:4px}
+.petals i:nth-child(7){left:48%;top:66%;--pd:14s;--pd2:-11s;background:#f6e0b0;width:5px;height:5px}
+.petals i:nth-child(8){left:52%;top:8%;--pd:20s;--pd2:-3s;background:#bdebd6;width:4px;height:4px}
+@keyframes petalDrift{
+  0%{opacity:0;transform:translate3d(0,0,0) rotate(0deg)}
+  12%{opacity:.55}
+  55%{opacity:.5;transform:translate3d(14px,-46px,0) rotate(120deg)}
+  85%{opacity:.2}
+  100%{opacity:0;transform:translate3d(-8px,-96px,0) rotate(260deg)}
+}
+
+/* 漂浮花束卡片 */
+.fcards{position:absolute;inset:0;z-index:3;pointer-events:none}
+.fcard{
+  position:absolute;pointer-events:auto;
+  display:block;width:clamp(158px,13.8vw,204px);
+  padding:calc(17*var(--u)) calc(19*var(--u)) calc(16*var(--u));
+  border:1px solid rgba(245,239,226,.2);border-radius:16px;
+  background:linear-gradient(152deg,rgba(245,239,226,.125),rgba(245,239,226,.035));
+  -webkit-backdrop-filter:blur(9px) saturate(1.1);backdrop-filter:blur(9px) saturate(1.1);
+  box-shadow:0 14px 32px rgba(0,0,0,.4),inset 0 1px 0 rgba(245,239,226,.09);
+  text-align:left;isolation:isolate;
+  transform:rotate(var(--r,0deg));
+  animation:fcardIn .9s cubic-bezier(.2,.7,.2,1) var(--in,.2s) both,
+            floaty 9s ease-in-out infinite;
+  animation-delay:var(--in,.2s),var(--fd,0s);
+  transition:border-color .35s,box-shadow .35s,background .35s,scale .35s cubic-bezier(.2,.7,.2,1);
+  will-change:transform;
+}
+.fcard::before{
+  content:"";position:absolute;inset:-1px;border-radius:inherit;z-index:-1;pointer-events:none;
+  background:radial-gradient(ellipse 70% 60% at 18% 0%,color-mix(in srgb,var(--c) 26%,transparent),transparent 72%);
+  opacity:.55;transition:opacity .35s;
+}
+.fcard:hover{
+  scale:1.045;border-color:color-mix(in srgb,var(--c) 55%,transparent);
+  background:linear-gradient(152deg,rgba(245,239,226,.15),rgba(245,239,226,.05));
+  box-shadow:0 20px 46px rgba(0,0,0,.5),0 0 28px color-mix(in srgb,var(--c) 22%,transparent),inset 0 1px 0 rgba(245,239,226,.14);
+}
+.fcard:hover::before{opacity:1}
+.fcard::after{
+  content:"↗";position:absolute;right:calc(11*var(--u));top:calc(8*var(--u));
+  font-size:calc(12*var(--u));color:var(--c);opacity:0;
+  transform:translate(-4px,4px);transition:opacity .3s,transform .35s;
+}
+.fcard:hover::after{opacity:.85;transform:none}
+.fcard b{display:block;font-size:calc(15.5*var(--u));font-weight:600;letter-spacing:.06em;color:var(--cream)}
+.fcard i{
+  display:block;margin-top:calc(4*var(--u));font-style:normal;
+  font-family:Antonio,sans-serif;font-size:calc(10*var(--u));letter-spacing:.24em;
+  text-transform:uppercase;color:rgba(245,239,226,.42);
+}
+.fcard .sprig{
+  position:absolute;top:calc(-21*var(--u));left:calc(-17*var(--u));
+  width:calc(52*var(--u));height:calc(52*var(--u));
+  color:var(--c);opacity:.92;transform:rotate(-14deg);z-index:-1;z-index:-1;
+  transition:transform .45s cubic-bezier(.2,.7,.2,1),opacity .35s;
+  filter:drop-shadow(0 4px 10px rgba(0,0,0,.35));
+}
+.fcard:hover .sprig{transform:rotate(4deg) scale(1.08);opacity:1}
+
+.fc1{left:3%;top:4%;--c:#8fe3c4;--r:-3.2deg;--in:.5s;--fd:0s}
+.fc2{left:0;top:34%;--c:#f2b8c6;--r:2.4deg;--in:.65s;--fd:-2.2s}
+.fc3{left:6%;top:64%;--c:#f0d3a3;--r:-2deg;--in:.8s;--fd:-4.4s}
+.fc4{right:3%;top:12%;--c:#b7b3f0;--r:3deg;--in:.6s;--fd:-1.1s}
+.fc5{right:0;top:42%;--c:#9fd8f2;--r:-2.6deg;--in:.75s;--fd:-3.3s}
+.fc6{right:6%;top:72%;--c:#c9e6a8;--r:2deg;--in:.9s;--fd:-5.5s}
+
+@keyframes fcardIn{
+  from{opacity:0;translate:0 18px;filter:blur(6px)}
+  to{opacity:1;translate:0 0;filter:blur(0)}
+}
+@keyframes floaty{
+  0%,100%{transform:rotate(var(--r,0deg)) translateY(0)}
+  50%{transform:rotate(calc(var(--r,0deg) * -.6)) translateY(-11px)}
+}
 .cap{
   margin-top:calc(34*var(--u));font-size:calc(18*var(--u));line-height:1.8;
   color:rgba(245,239,226,.8);max-width:26em;
@@ -159,6 +289,33 @@ h2{font-size:clamp(28px,3.1vw,40px);line-height:1.32;font-weight:600;letter-spac
 .skill h3 s{width:5px;height:5px;border-radius:50%;background:#8fe3c4;box-shadow:0 0 10px #8fe3c4;text-decoration:none}
 .skill p{font-size:13.2px;line-height:1.85;color:rgba(245,239,226,.6)}
 
+/* 自我介绍侧栏 */
+.about-aside .lead{font-size:15px}
+.facts{display:flex;flex-wrap:wrap;gap:clamp(22px,2.6vw,40px);margin-top:30px;padding-top:24px;border-top:1px solid var(--line-soft)}
+.fact span{display:block;font-size:10.5px;letter-spacing:.24em;text-transform:uppercase;color:rgba(245,239,226,.38);margin-bottom:7px}
+.fact b{font-weight:500;font-size:14px;letter-spacing:.02em;color:rgba(245,239,226,.9)}
+
+/* 兴趣爱好 */
+.hobbies{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.hobby{
+  border:1px solid var(--line-soft);border-radius:16px;padding:24px 22px;
+  background:linear-gradient(180deg,rgba(245,239,226,.04),rgba(245,239,226,.01));
+  transition:border-color .35s,transform .35s,background .35s;
+}
+.hobby:hover{border-color:rgba(245,239,226,.2);transform:translateY(-3px);background:linear-gradient(180deg,rgba(245,239,226,.06),rgba(245,239,226,.015))}
+.hobby b{display:flex;align-items:center;gap:10px;font-size:14.5px;font-weight:600;margin-bottom:10px}
+.hobby b i{font-family:Antonio,sans-serif;font-style:normal;font-size:11px;letter-spacing:.1em;color:rgba(245,239,226,.35)}
+.hobby p{font-size:13.2px;line-height:1.88;color:rgba(245,239,226,.6)}
+
+/* 教育背景 */
+.edu{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:clamp(28px,4vw,64px);align-items:start}
+.edu h3{font-size:clamp(20px,2.2vw,26px);font-weight:600;letter-spacing:-.01em;line-height:1.4}
+.edu-meta{font-family:Antonio,sans-serif;font-size:12.5px;letter-spacing:.12em;color:rgba(245,239,226,.45);margin:10px 0 18px}
+.edu p{font-size:14.2px;line-height:1.9;color:rgba(245,239,226,.68);max-width:46em}
+.edu-note{border:1px solid var(--line-soft);border-radius:16px;padding:24px;background:linear-gradient(180deg,rgba(143,227,196,.055),rgba(245,239,226,.01))}
+.edu-note b{display:block;font-size:15px;font-weight:600;margin-bottom:10px}
+.edu-note p{font-size:13.4px;line-height:1.9;color:rgba(245,239,226,.6)}
+
 /* 工作经历 */
 .timeline{display:grid;gap:0;margin-top:clamp(48px,5vw,72px);border-top:1px solid var(--line-soft)}
 .tl-row{
@@ -224,6 +381,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--cream);outline-offs
 /* ---------- 响应式 ---------- */
 @media (max-width:980px){
   .about-grid{grid-template-columns:1fr;gap:40px}
+  .edu{grid-template-columns:1fr;gap:26px}
   .tl-row{grid-template-columns:1fr;gap:8px}
   .tl-role{order:1}
   .tl-role span{display:inline;margin-left:10px}
@@ -239,21 +397,31 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--cream);outline-offs
   nav a:not(.pill){font-size:11.5px;letter-spacing:.12em}
   nav a.hide-sm{display:none}
   .pill{height:38px;padding:0 16px;font-size:12px}
-  .hero{padding:120px 22px 80px}
+  .hero{padding:104px 16px 96px}
+  h1{font-size:clamp(28px,7.2vw,36px);letter-spacing:.3em;text-indent:.3em}
+  .hero-sub{font-size:11.5px;letter-spacing:.1em}
+  .stage{width:100%;height:auto;flex-direction:column;align-items:center;margin-top:10px}
+  .stage-glow{width:290px;height:320px;top:0;bottom:auto}
+  .figure{height:min(40vh,350px);min-height:240px;order:1}
+  .corner{right:14px;bottom:16px}
+  .corner span,.corner i{display:none}
+  .go{margin-top:26px;width:52px;height:52px}
+  .figure-ground{position:relative;left:auto;bottom:auto;transform:none;order:2;width:148px;height:20px;margin-top:-12px}
+  .fcards{position:static;order:3;display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;max-width:400px;margin-top:26px}
+  .fcard{position:static;width:auto;animation:none;transform:none;padding:12px 14px 11px;border-radius:14px}
+  .fcard .sprig{width:34px;height:34px;top:-10px;left:-8px}
+  .fcard b{font-size:13px}
+  .fcard i{font-size:8.5px}
   .hero::before{
-    background:radial-gradient(ellipse 96% 48% at 50% 46%,rgba(3,5,4,.9) 0%,rgba(3,5,4,.72) 46%,rgba(3,5,4,.24) 74%,rgba(3,5,4,0) 92%);
+    background:radial-gradient(ellipse 96% 40% at 50% 30%,rgba(3,5,4,.9) 0%,rgba(3,5,4,.68) 48%,rgba(3,5,4,.2) 76%,rgba(3,5,4,0) 94%);
   }
-  .hero::before{
-    background:radial-gradient(ellipse 96% 48% at 50% 46%,rgba(3,5,4,.9) 0%,rgba(3,5,4,.72) 46%,rgba(3,5,4,.24) 74%,rgba(3,5,4,0) 92%);
-  }
-  h1{font-size:clamp(64px,19vw,104px);letter-spacing:.02em}
   .eyebrow{font-size:10px;letter-spacing:.3em}
   .cap{font-size:15px;margin-top:26px;line-height:1.85}
   .go{width:56px;height:56px;margin-top:30px}
   .wrap{padding:0 22px}
   .skills{grid-template-columns:1fr}
   .corner{
-    left:22px;right:22px;bottom:22px;justify-content:space-between;
+    left:auto;right:14px;bottom:14px;justify-content:flex-end;
     font-size:10px;letter-spacing:.18em;
   }
   .corner i{display:none}
@@ -264,6 +432,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--cream);outline-offs
 @media (prefers-reduced-motion:reduce){
   .loader span{animation:none}
   .reveal{opacity:1;transform:none;transition:none}
+  .figure,.fcard,.stage-glow{animation:none!important}
   html{scroll-behavior:auto}
 }
 </style>
@@ -286,13 +455,113 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--cream);outline-offs
   </header>
 
   <section class="hero" id="top">
-    <p class="eyebrow">Java Engineer · AI Agent Developer</p>
-    <h1><span>邹浔</span></h1>
-    <p class="cap">
-      像植物一样生长，而不是被堆砌。<br>
-      <b>4 年 Java 后端</b>，从高并发链路到时序一致的分布式事务，<br>
-      也把大模型 Agent 稳稳地落进生产环境。
-    </p>
+    <div class="hero-head">
+      <p class="eyebrow">Java Engineer · AI Agent Developer</p>
+      <h1><span>邹浔</span></h1>
+      <p class="hero-sub">像植物一样生长，而不是被堆砌</p>
+    </div>
+
+    <div class="stage" id="stage">
+      <div class="stage-glow" aria-hidden="true"></div>
+      <div class="petals" aria-hidden="true">
+        <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+      </div>
+      <div class="figure-ground" aria-hidden="true"></div>
+      <img class="figure" id="figure" src="figure.png" alt="邹浔的手绘形象：短发、圆框眼镜，穿牛仔外套背双肩包，站在花谷中" width="279" height="711" fetchpriority="high" decoding="async">
+
+      <nav class="fcards" aria-label="快速导航">
+        <a class="fcard fc1" href="#about" style="--c:#8fe3c4">
+          <svg class="sprig" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+            <g stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity=".5">
+              <path d="M24 45c0-8-2-13-7-17M24 45c0-9 2-14 8-18M24 45V25"/>
+              <path d="M19 33c-3.6-.4-5.4-2.4-5.8-5.4"/>
+            </g>
+            <g stroke="currentColor" stroke-width=".9" opacity=".85">
+              <g transform="translate(17 23)"><circle cy="-3" r="1.9"/><circle cx="2.9" cy="-.9" r="1.9"/><circle cx="1.8" cy="2.4" r="1.9"/><circle cx="-1.8" cy="2.4" r="1.9"/><circle cx="-2.9" cy="-.9" r="1.9"/></g>
+              <g transform="translate(33 22)"><circle cy="-2.7" r="1.7"/><circle cx="2.6" cy="-.8" r="1.7"/><circle cx="1.6" cy="2.2" r="1.7"/><circle cx="-1.6" cy="2.2" r="1.7"/><circle cx="-2.6" cy="-.8" r="1.7"/></g>
+              <g transform="translate(24 12)"><circle cy="-2.4" r="1.5"/><circle cx="2.3" cy="-.7" r="1.5"/><circle cx="1.4" cy="1.9" r="1.5"/><circle cx="-1.4" cy="1.9" r="1.5"/><circle cx="-2.3" cy="-.7" r="1.5"/></g>
+            </g>
+          </svg>
+          <b>自我介绍</b><i>About me</i>
+        </a>
+
+        <a class="fcard fc2" href="#skills" style="--c:#f2b8c6">
+          <svg class="sprig" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+            <g stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity=".5">
+              <path d="M24 45c0-8-2-13-7-17M24 45c0-9 2-14 8-18M24 45V25"/>
+              <path d="M19 33c-3.6-.4-5.4-2.4-5.8-5.4"/>
+            </g>
+            <g stroke="currentColor" stroke-width=".9" opacity=".85">
+              <g transform="translate(17 23)"><circle cy="-3" r="1.9"/><circle cx="2.9" cy="-.9" r="1.9"/><circle cx="1.8" cy="2.4" r="1.9"/><circle cx="-1.8" cy="2.4" r="1.9"/><circle cx="-2.9" cy="-.9" r="1.9"/></g>
+              <g transform="translate(33 22)"><circle cy="-2.7" r="1.7"/><circle cx="2.6" cy="-.8" r="1.7"/><circle cx="1.6" cy="2.2" r="1.7"/><circle cx="-1.6" cy="2.2" r="1.7"/><circle cx="-2.6" cy="-.8" r="1.7"/></g>
+              <g transform="translate(24 12)"><circle cy="-2.4" r="1.5"/><circle cx="2.3" cy="-.7" r="1.5"/><circle cx="1.4" cy="1.9" r="1.5"/><circle cx="-1.4" cy="1.9" r="1.5"/><circle cx="-2.3" cy="-.7" r="1.5"/></g>
+            </g>
+          </svg>
+          <b>个人技能</b><i>Skills</i>
+        </a>
+
+        <a class="fcard fc3" href="#hobbies" style="--c:#f0d3a3">
+          <svg class="sprig" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+            <g stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity=".5">
+              <path d="M24 45c0-8-2-13-7-17M24 45c0-9 2-14 8-18M24 45V25"/>
+              <path d="M19 33c-3.6-.4-5.4-2.4-5.8-5.4"/>
+            </g>
+            <g stroke="currentColor" stroke-width=".9" opacity=".85">
+              <g transform="translate(17 23)"><circle cy="-3" r="1.9"/><circle cx="2.9" cy="-.9" r="1.9"/><circle cx="1.8" cy="2.4" r="1.9"/><circle cx="-1.8" cy="2.4" r="1.9"/><circle cx="-2.9" cy="-.9" r="1.9"/></g>
+              <g transform="translate(33 22)"><circle cy="-2.7" r="1.7"/><circle cx="2.6" cy="-.8" r="1.7"/><circle cx="1.6" cy="2.2" r="1.7"/><circle cx="-1.6" cy="2.2" r="1.7"/><circle cx="-2.6" cy="-.8" r="1.7"/></g>
+              <g transform="translate(24 12)"><circle cy="-2.4" r="1.5"/><circle cx="2.3" cy="-.7" r="1.5"/><circle cx="1.4" cy="1.9" r="1.5"/><circle cx="-1.4" cy="1.9" r="1.5"/><circle cx="-2.3" cy="-.7" r="1.5"/></g>
+            </g>
+          </svg>
+          <b>兴趣爱好</b><i>Hobbies</i>
+        </a>
+
+        <a class="fcard fc4" href="#experience" style="--c:#b7b3f0">
+          <svg class="sprig" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+            <g stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity=".5">
+              <path d="M24 45c0-8-2-13-7-17M24 45c0-9 2-14 8-18M24 45V25"/>
+              <path d="M19 33c-3.6-.4-5.4-2.4-5.8-5.4"/>
+            </g>
+            <g stroke="currentColor" stroke-width=".9" opacity=".85">
+              <g transform="translate(17 23)"><circle cy="-3" r="1.9"/><circle cx="2.9" cy="-.9" r="1.9"/><circle cx="1.8" cy="2.4" r="1.9"/><circle cx="-1.8" cy="2.4" r="1.9"/><circle cx="-2.9" cy="-.9" r="1.9"/></g>
+              <g transform="translate(33 22)"><circle cy="-2.7" r="1.7"/><circle cx="2.6" cy="-.8" r="1.7"/><circle cx="1.6" cy="2.2" r="1.7"/><circle cx="-1.6" cy="2.2" r="1.7"/><circle cx="-2.6" cy="-.8" r="1.7"/></g>
+              <g transform="translate(24 12)"><circle cy="-2.4" r="1.5"/><circle cx="2.3" cy="-.7" r="1.5"/><circle cx="1.4" cy="1.9" r="1.5"/><circle cx="-1.4" cy="1.9" r="1.5"/><circle cx="-2.3" cy="-.7" r="1.5"/></g>
+            </g>
+          </svg>
+          <b>个人经历</b><i>Experience</i>
+        </a>
+
+        <a class="fcard fc5" href="#work" style="--c:#9fd8f2">
+          <svg class="sprig" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+            <g stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity=".5">
+              <path d="M24 45c0-8-2-13-7-17M24 45c0-9 2-14 8-18M24 45V25"/>
+              <path d="M19 33c-3.6-.4-5.4-2.4-5.8-5.4"/>
+            </g>
+            <g stroke="currentColor" stroke-width=".9" opacity=".85">
+              <g transform="translate(17 23)"><circle cy="-3" r="1.9"/><circle cx="2.9" cy="-.9" r="1.9"/><circle cx="1.8" cy="2.4" r="1.9"/><circle cx="-1.8" cy="2.4" r="1.9"/><circle cx="-2.9" cy="-.9" r="1.9"/></g>
+              <g transform="translate(33 22)"><circle cy="-2.7" r="1.7"/><circle cx="2.6" cy="-.8" r="1.7"/><circle cx="1.6" cy="2.2" r="1.7"/><circle cx="-1.6" cy="2.2" r="1.7"/><circle cx="-2.6" cy="-.8" r="1.7"/></g>
+              <g transform="translate(24 12)"><circle cy="-2.4" r="1.5"/><circle cx="2.3" cy="-.7" r="1.5"/><circle cx="1.4" cy="1.9" r="1.5"/><circle cx="-1.4" cy="1.9" r="1.5"/><circle cx="-2.3" cy="-.7" r="1.5"/></g>
+            </g>
+          </svg>
+          <b>项目经历</b><i>Projects</i>
+        </a>
+
+        <a class="fcard fc6" href="#education" style="--c:#c9e6a8">
+          <svg class="sprig" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+            <g stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity=".5">
+              <path d="M24 45c0-8-2-13-7-17M24 45c0-9 2-14 8-18M24 45V25"/>
+              <path d="M19 33c-3.6-.4-5.4-2.4-5.8-5.4"/>
+            </g>
+            <g stroke="currentColor" stroke-width=".9" opacity=".85">
+              <g transform="translate(17 23)"><circle cy="-3" r="1.9"/><circle cx="2.9" cy="-.9" r="1.9"/><circle cx="1.8" cy="2.4" r="1.9"/><circle cx="-1.8" cy="2.4" r="1.9"/><circle cx="-2.9" cy="-.9" r="1.9"/></g>
+              <g transform="translate(33 22)"><circle cy="-2.7" r="1.7"/><circle cx="2.6" cy="-.8" r="1.7"/><circle cx="1.6" cy="2.2" r="1.7"/><circle cx="-1.6" cy="2.2" r="1.7"/><circle cx="-2.6" cy="-.8" r="1.7"/></g>
+              <g transform="translate(24 12)"><circle cy="-2.4" r="1.5"/><circle cx="2.3" cy="-.7" r="1.5"/><circle cx="1.4" cy="1.9" r="1.5"/><circle cx="-1.4" cy="1.9" r="1.5"/><circle cx="-2.3" cy="-.7" r="1.5"/></g>
+            </g>
+          </svg>
+          <b>教育背景</b><i>Education</i>
+        </a>
+      </nav>
+    </div>
+
     <a class="go" href="#about" id="go" aria-label="继续向下，关于我">
       <svg viewBox="0 0 24 24"><path d="M12 5v14M6 13l6 6 6-6"/></svg>
     </a>
@@ -313,9 +582,9 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--cream);outline-offs
   <div class="page">
     <div class="wrap">
 
-      <!-- 关于我 -->
+      <!-- 01 自我介绍 -->
       <section class="section" id="about">
-        <div class="label"><b>01</b> 关于我</div>
+        <div class="label"><b>01</b> 自我介绍</div>
         <div class="about-grid">
           <div class="about-intro">
             <h2>把复杂的问题，<br>拆成能长期生长的系统。</h2>
@@ -329,29 +598,54 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--cream);outline-offs
             </p>
           </div>
 
-          <div class="skills">
-            <div class="skill">
-              <h3><s></s>AI 智能体与大模型</h3>
-              <p>LangChain4j / LangGraph 多 Agent 编排 · Function & Tool Calling · MCP · RAG 双路召回 + Rerank · Memory 设计与上下文压缩 · Agent 效果评测（检索准确率 / 任务成功率 / 幻觉率）</p>
-            </div>
-            <div class="skill">
-              <h3><s></s>AI 工具链与研发工作流</h3>
-              <p>深度使用 WorkBuddy、Claude Code、Cursor、Codex、Trae 等 AI 编码工具 · MCP 服务器接入与自定义工具封装 · 搭建「需求拆解 → 编码 → 评审 → 测试 → 部署」的 Agent 工作流 · 结合 CI/CD 落地自动化，让 AI 真正融进日常研发链路</p>
-            </div>
-            <div class="skill">
-              <h3><s></s>Java 后端与微服务</h3>
-              <p>Spring Boot / Cloud Alibaba / Gateway / Nacos / Sentinel / Seata / Dubbo · MyBatis-Plus / JPA · MySQL 调优、分库分表、主从复制 · Redis 分布式锁与多级缓存 · ES / MongoDB / Oracle</p>
-            </div>
-            <div class="skill">
-              <h3><s></s>中间件与数据同步</h3>
-              <p>RabbitMQ / Kafka / RocketMQ 削峰解耦 · XXL-JOB 分布式调度 · canal + Kafka + MySQL 数据同步 · Camunda 工作流 · MinIO 对象存储 · CompletableFuture 异步编排与线程池隔离</p>
-            </div>
-            <div class="skill">
-              <h3><s></s>Python 与运维</h3>
-              <p>Python / FastAPI / LangChain / Streamlit · uv / Poetry 依赖管理 · JVM 调优（MAT、Arthas、GCViewer）· Docker / K8s / Linux · 阿里云 CI/CD 自动化部署</p>
+          <div class="about-aside">
+            <p class="lead" style="font-size:15px">
+              喜欢把「能跑」推到「跑得稳、看得懂、接得上」。写代码之外，也愿意花时间把方案画成图、把踩过的坑写成文档，
+              让下一个接手的人少走一点弯路。
+            </p>
+            <div class="facts">
+              <div class="fact"><span>坐标</span><b>北京</b></div>
+              <div class="fact"><span>经验</span><b>4 年 Java 后端</b></div>
+              <div class="fact"><span>方向</span><b>Java × AI Agent</b></div>
+              <div class="fact"><span>状态</span><b>在职 · 随时到岗</b></div>
             </div>
           </div>
         </div>
+      </section>
+
+      <!-- 02 个人技能 -->
+      <section class="section" id="skills">
+        <div class="label"><b>02</b> 个人技能</div>
+        <h2 style="margin-bottom:clamp(28px,3vw,44px)">手上有的工具，<br>和把它们连起来的方式。</h2>
+
+        <div class="skills">
+          <div class="skill">
+            <h3><s></s>AI 智能体与大模型</h3>
+            <p>LangChain4j / LangGraph 多 Agent 编排 · Function & Tool Calling · MCP · RAG 双路召回 + Rerank · Memory 设计与上下文压缩 · Agent 效果评测（检索准确率 / 任务成功率 / 幻觉率）</p>
+          </div>
+          <div class="skill">
+            <h3><s></s>AI 工具链与研发工作流</h3>
+            <p>深度使用 WorkBuddy、Claude Code、Cursor、Codex、Trae 等 AI 编码工具 · MCP 服务器接入与自定义工具封装 · 搭建「需求拆解 → 编码 → 评审 → 测试 → 部署」的 Agent 工作流 · 结合 CI/CD 落地自动化，让 AI 真正融进日常研发链路</p>
+          </div>
+          <div class="skill">
+            <h3><s></s>Java 后端与微服务</h3>
+            <p>Spring Boot / Cloud Alibaba / Gateway / Nacos / Sentinel / Seata / Dubbo · MyBatis-Plus / JPA · MySQL 调优、分库分表、主从复制 · Redis 分布式锁与多级缓存 · ES / MongoDB / Oracle</p>
+          </div>
+          <div class="skill">
+            <h3><s></s>中间件与数据同步</h3>
+            <p>RabbitMQ / Kafka / RocketMQ 削峰解耦 · XXL-JOB 分布式调度 · canal + Kafka + MySQL 数据同步 · Camunda 工作流 · MinIO 对象存储 · CompletableFuture 异步编排与线程池隔离</p>
+          </div>
+          <div class="skill">
+            <h3><s></s>Python 与运维</h3>
+            <p>Python / FastAPI / LangChain / Streamlit · uv / Poetry 依赖管理 · JVM 调优（MAT、Arthas、GCViewer）· Docker / K8s / Linux · 阿里云 CI/CD 自动化部署</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 03 个人经历 -->
+      <section class="section" id="experience">
+        <div class="label"><b>03</b> 个人经历</div>
+        <h2>两段工作，<br>一条一直往深处走的路。</h2>
 
         <div class="timeline">
           <div class="tl-row reveal">
@@ -367,9 +661,34 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--cream);outline-offs
         </div>
       </section>
 
-      <!-- 项目经历 -->
+      <!-- 04 兴趣爱好 -->
+      <section class="section" id="hobbies">
+        <div class="label"><b>04</b> 兴趣爱好</div>
+        <h2 style="margin-bottom:clamp(28px,3vw,44px)">工作之外，<br>给自己留一点野生的部分。</h2>
+
+        <div class="hobbies">
+          <div class="hobby reveal">
+            <b><i>01</i>徒步与城市漫游</b>
+            <p>周末往山里走，习惯把路线当架构图看：先看地形，再算体力，最后留一段冗余。</p>
+          </div>
+          <div class="hobby reveal">
+            <b><i>02</i>摄影与构图</b>
+            <p>拍天空、植物和城市的边角，喜欢用留白和层次去讲一个画面，也顺手练了 UI 的审美。</p>
+          </div>
+          <div class="hobby reveal">
+            <b><i>03</i>科幻与推理</b>
+            <p>偏爱设定严密的故事，看作者怎么把规则立住、再亲手打破——和做系统是同一种乐趣。</p>
+          </div>
+          <div class="hobby reveal">
+            <b><i>04</i>手绘与视觉笔记</b>
+            <p>用画图理清结构，开会先画一遍再写纪要。复杂的东西画出来，往往就没那么复杂了。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 05 项目经历 -->
       <section class="section" id="work">
-        <div class="label"><b>02</b> 项目经历</div>
+        <div class="label"><b>05</b> 项目经历</div>
 
         <div class="projects">
 
@@ -498,9 +817,33 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--cream);outline-offs
         </div>
       </section>
 
-      <!-- 教育与联系 -->
+      <!-- 06 教育背景 -->
+      <section class="section" id="education">
+        <div class="label"><b>06</b> 教育背景</div>
+        <div class="edu">
+          <div>
+            <h3>江西财经大学现代经济管理学院</h3>
+            <div class="edu-meta">计算机科学与技术 · 本科 &nbsp;/&nbsp; 2018.09 — 2021.07</div>
+            <p>
+              在校期间系统学习计算机基础与工程化方法，从数据结构、操作系统到数据库原理与 Java 程序设计，
+              打下了后面做后端与分布式系统的底子。
+            </p>
+            <div class="stack" style="margin:16px 0 0">
+              <span>数据结构与算法</span><span>操作系统</span><span>计算机网络</span><span>数据库原理</span><span>Java 程序设计</span><span>软件工程</span>
+            </div>
+          </div>
+          <div>
+            <div class="edu-note">
+              <b>之后的路，是自学的。</b>
+              <p>大模型、Agent 编排、RAG 与检索评测，大多靠项目倒逼着学：先做出来，再回头补原理。现在把这套学习方式也用在了 AI 工具链上。</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 07 联系 -->
       <section class="contact" id="contact">
-        <div class="label"><b>03</b> 联系</div>
+        <div class="label"><b>07</b> 联系</div>
         <h2>有合适的岗位或项目？<br>聊聊看。</h2>
         <a class="contact-mail" href="mailto:13870215105@163.com">
           13870215105@163.com
@@ -509,8 +852,8 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--cream);outline-offs
 
         <div class="contact-grid">
           <div class="c-item"><span>电话 / 微信</span><b>13870215105</b></div>
-          <div class="c-item"><span>状态</span><b>在职 · 随时到岗</b></div>
-          <div class="c-item"><span>教育背景</span><b>江西财经大学现代经济管理学院 · 计算机科学与技术（本科）2018.09 — 2021.07</b></div>
+          <div class="c-item"><span>邮箱</span><b>13870215105@163.com</b></div>
+          <div class="c-item"><span>坐标</span><b>北京 · 可远程</b></div>
           <div class="c-item"><span>简历</span><b><a href="resume.pdf" target="_blank" rel="noopener" style="border-bottom:1px solid rgba(245,239,226,.3)">下载 PDF</a></b></div>
         </div>
 
@@ -588,6 +931,28 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--cream);outline-offs
           'deg) rotateY(' + (px * 2.2).toFixed(2) + 'deg) translateY(-2px)';
       });
       el.addEventListener('pointerleave', function () { el.style.transform = ''; });
+    });
+  }
+
+  // 人物与花束卡片：随鼠标轻微视差，制造前后层次
+  var figureEl = document.getElementById('figure');
+  var cardsEl = document.querySelector('.fcards');
+  if (figureEl && !window.matchMedia('(prefers-reduced-motion: reduce)').matches && matchMedia('(hover:hover)').matches) {
+    var pRaf = 0, pTx = 0, pTy = 0;
+    window.addEventListener('pointermove', function (e) {
+      pTx = (e.clientX / window.innerWidth - 0.5) * 16;
+      pTy = (e.clientY / window.innerHeight - 0.5) * 10;
+      if (!pRaf) {
+        pRaf = requestAnimationFrame(function () {
+          pRaf = 0;
+          figureEl.style.transform = 'translate3d(' + (pTx * 0.55).toFixed(2) + 'px,' + (pTy * 0.5).toFixed(2) + 'px,0)';
+          if (cardsEl) cardsEl.style.transform = 'translate3d(' + (-pTx * 0.5).toFixed(2) + 'px,' + (-pTy * 0.6).toFixed(2) + 'px,0)';
+        });
+      }
+    }, { passive: true });
+    window.addEventListener('pointerleave', function () {
+      figureEl.style.transform = '';
+      if (cardsEl) cardsEl.style.transform = '';
     });
   }
 
